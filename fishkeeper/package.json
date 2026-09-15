@@ -10,7 +10,10 @@
     "debug": "NODE_OPTIONS='--inspect' next dev",
     "type-check": "tsc --noEmit",
     "lint": "next lint",
-    "prettier-fix": "prettier --write ."
+    "prettier-fix": "prettier --write .",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
