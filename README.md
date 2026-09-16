@@ -5,7 +5,7 @@ Outil libre de gestion d'aquariums[cite: 1].
 ## Membres de l'équipe
 
 1. Audor Etienne ( project leader )
-2. Nom Prénom
+2. Morain Nolan
 3. Nom Prénom
 4. Nom Prénom
 5. Nom Prénom
