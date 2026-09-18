@@ -5,22 +5,22 @@ import ThemeRegistry from './ThemeRegistry';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Fishkeeper',
-  description: "Outil de gestion d'aquariums",
+    title: 'Fishkeeper',
+    description: "Outil de gestion d'aquariums",
 };
 
 interface RootLayoutProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
-  return (
-    <html lang="fr">
-      <body className={inter.className}>
-        <ThemeRegistry>
-          {children}
-        </ThemeRegistry>
-      </body>
-    </html>
-  );
+export default function RootLayout({
+    children,
+}: RootLayoutProps): React.JSX.Element {
+    return (
+        <html lang="fr">
+            <body className={inter.className}>
+                <ThemeRegistry>{children}</ThemeRegistry>
+            </body>
+        </html>
+    );
 }

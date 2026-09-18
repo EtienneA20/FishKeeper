@@ -12,16 +12,17 @@ Outil libre de gestion d'aquariums[cite: 1].
 
 ## Stack Technique
 
-* **Frontend** : Next.js (App Router), Material UI (MUI), Lucide React
-* **Backend** : Next.js API Routes, Prisma ORM
-* **Base de données** : PostgreSQL
+- **Frontend** : Next.js (App Router), Material UI (MUI), Lucide React
+- **Backend** : Next.js API Routes, Prisma ORM
+- **Base de données** : PostgreSQL
 
 ## Extensions VS Code Recommandées
 
 Pour garantir un environnement de développement homogène, installez les extensions suivantes :
-* ESLint
-* Prettier - Code formatter
-* Prisma
+
+- ESLint
+- Prettier - Code formatter
+- Prisma
 
 ## Démarrage Rapide
 

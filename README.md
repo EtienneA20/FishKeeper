@@ -5,10 +5,10 @@ Outil libre de gestion d'aquariums[cite: 1].
 ## Membres de l'équipe
 
 1. Audor Etienne ( project leader )
-2. Nom Prénom
-3. Nom Prénom
-4. Nom Prénom
-5. Nom Prénom
+2. Vachey Joris
+3. Morrain Nolan
+4. Moisan Clement
+5. Moreau Quentin
 
 ## Stack Technique
 
@@ -21,14 +21,17 @@ Outil libre de gestion d'aquariums[cite: 1].
 Pour garantir un environnement de développement homogène, installez les extensions suivantes :
 * ESLint
 * Prettier - Code formatter
-* Prisma
+* GitLens
+* Error lens
+* Conventional commit
+* Pretty TypeScript Errors
 
 ## Démarrage Rapide
 
 Copiez le fichier `.env.example` vers `.env` et configurez l'accès à PostgreSQL.
 
 Installer les dépendances :
-\`npm install\`
+\`npm i\`
 
 Générer la base de données :
 \`npx prisma migrate dev\`
