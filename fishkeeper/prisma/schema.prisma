@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 
@@ -14,4 +15,10 @@ model Aquarium {
   type      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String
 }
