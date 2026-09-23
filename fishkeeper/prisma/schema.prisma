@@ -14,13 +14,10 @@ model User {
   name      String
   email     String     @unique
   password  String
-  role      String     @default("USER") // "USER" | "ADMIN" (voir note enums plus bas)
   aquariums Aquarium[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
-
-// Aquarium
 
 model Aquarium {
   id        String   @id @default(uuid())
@@ -54,10 +51,11 @@ model WaterMeasurement {
   gh          Float
   kh          Float
   measuredAt  DateTime @default(now())
-  alerts Alert[]
 
   aquarium   Aquarium @relation(fields: [aquariumId], references: [id])
   aquariumId String
+
+  alerts Alert[]
 
   @@index([aquariumId, measuredAt])
 }
@@ -65,43 +63,36 @@ model WaterMeasurement {
 // Target and Alert
 
 model TargetRange {
-  id         String         @id @default(uuid())
-  parameter  WaterParameter
-  
-  min        Float?
-  max        Float?
+  id        String @id @default(uuid())
+  parameter String
+  min       Float?
+  max       Float?
 
-  aquarium   Aquarium       @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
   aquariumId String
 
-  alerts     Alert[]
+  alerts Alert[]
 
   @@unique([aquariumId, parameter])
 }
 
-enum AlertType {
-  TOO_LOW
-  TOO_HIGH
-}
-
 model Alert {
-  id            String         @id @default(uuid())
-  parameter     WaterParameter
-  value         Float
-  targetLimit   Float
-  type          AlertType
+  id          String    @id @default(uuid())
+  parameter   String
+  value       Float
+  targetLimit Float
+  type        String
+  triggeredAt DateTime  @default(now())
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
 
-  triggeredAt   DateTime       @default(now())
-  resolved      Boolean        @default(false)
-  resolvedAt    DateTime?
-
-  aquarium      Aquarium       @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
-  aquariumId    String
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
 
   measurement   WaterMeasurement? @relation(fields: [measurementId], references: [id], onDelete: SetNull)
   measurementId Int?
 
-  targetRange   TargetRange?   @relation(fields: [targetRangeId], references: [id], onDelete: SetNull)
+  targetRange   TargetRange? @relation(fields: [targetRangeId], references: [id], onDelete: SetNull)
   targetRangeId String?
 
   @@index([aquariumId, resolved])
@@ -125,7 +116,6 @@ model Category {
   value String
 
   species Specie[]
-  waterType WaterMeasurement
   @@unique([type, value])
 }
 
@@ -146,7 +136,7 @@ model AquariumSpecies {
 
 model MaintenanceTask {
   id            String    @id @default(uuid())
-  title         String // "Changement d'eau", "Nettoyage du filtre"...
+  title         String
   frequencyDays Int
   dueAt         DateTime
   lastDoneAt    DateTime?
