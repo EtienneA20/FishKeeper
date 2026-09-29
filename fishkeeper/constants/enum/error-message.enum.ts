@@ -8,4 +8,6 @@ export enum EERROR_MESSAGE {
     USER_EMAIL_REQUIRED = "L'adresse e-mail est obligatoire.",
     USER_EMAIL_INVALID = "L'adresse e-mail est invalide.",
     USER_VALIDATION = 'Les données utilisateur sont invalides.',
+    USER_ROLE_REQUIRED = 'Le rôle est obligatoire.',
+    USER_ROLE_INVALID = 'Le rôle est invalide.',
 }

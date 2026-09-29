@@ -3,6 +3,11 @@ generator client {
   output   = "../generated/prisma"
 }
 
+enum Role {
+  ADMIN
+  USER
+  SUDO
+}
 
 datasource db {
   provider = "sqlite"
@@ -18,7 +23,10 @@ model Aquarium {
 }
 
 model User {
-  id    String @id @default(uuid())
-  name  String
-  email String
+  id          String @id @default(uuid())
+  name        String
+  email       String
+  role        Role   @default(USER)
+  departement String
+  password    String
 }
