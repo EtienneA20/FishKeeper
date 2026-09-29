@@ -5,17 +5,27 @@ import createCache from '@emotion/cache';
 import type { EmotionCache } from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { ThemeProvider, createTheme, CssBaseline, ThemeOptions } from '@mui/material';
 import { UserProvider } from '@/contexts/UserContext';
 
 const theme = createTheme({
-    palette: {
-        mode: 'light',
-        primary: {
-            main: '#0288d1',
-        },
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#dbe6ec',
     },
-});
+    darkBlueButton: {
+      background: '#0a2540',
+      colorText: '#ffffff',
+    },
+    card: {
+      background: '#ffffff',
+      colorTitle: '#000000',
+      colorText: '#74777e',
+      borderRadius: 3
+    },
+  },
+} as unknown as ThemeOptions);
 
 interface ThemeRegistryProps {
     children: React.ReactNode;
