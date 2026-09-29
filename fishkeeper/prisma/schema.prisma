@@ -13,24 +13,23 @@ model User {
   id        String     @id @default(uuid())
   name      String
   email     String     @unique
-  password  String
+
   aquariums Aquarium[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  materials Material[]
 }
 
 model Aquarium {
-  id        String   @id @default(uuid())
-  name      String
-  volume    Int
-  dimension Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String            @id @default(uuid())
+  name             String
+  volume           Int
+  dimension        Json?
 
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String
+  owner            User              @relation(fields: [ownerId], references: [id])
+  ownerId          String
 
+  materials        Material[]
   measurements     WaterMeasurement[]
+
   targetRanges     TargetRange[]
   alerts           Alert[]
   species          AquariumSpecies[]
@@ -58,6 +57,18 @@ model WaterMeasurement {
   alerts Alert[]
 
   @@index([aquariumId, measuredAt])
+}
+
+model Material {
+  id         Int       @id @default(autoincrement())
+  name       String
+  number     Int
+
+  owner      User      @relation(fields: [ownerId], references: [id])
+  ownerId    String
+
+  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
+  aquariumId String?
 }
 
 // Target and Alert
@@ -121,6 +132,7 @@ model Category {
 
 model AquariumSpecies {
   id         String  @id @default(uuid())
+  name       String
   quantity   Int
   notes      String?
 
