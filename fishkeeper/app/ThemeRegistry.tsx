@@ -7,6 +7,7 @@ import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { UserProvider } from '@/contexts/UserContext';
+import { SessionProvider } from 'next-auth/react';
 
 const theme = createTheme({
     palette: {
@@ -76,7 +77,9 @@ export default function ThemeRegistry({
         <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <UserProvider>{children}</UserProvider>
+                <SessionProvider>
+                    <UserProvider>{children}</UserProvider>
+                </SessionProvider>
             </ThemeProvider>
         </CacheProvider>
     );

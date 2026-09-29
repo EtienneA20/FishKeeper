@@ -3,6 +3,12 @@ generator client {
   output   = "../generated/prisma"
 }
 
+enum Role {
+  ADMIN
+  USER
+  SUDO
+}
+
 datasource db {
   provider = "sqlite"
 }
@@ -10,9 +16,12 @@ datasource db {
 // User
 
 model User {
-  id        String     @id @default(uuid())
-  name      String
-  email     String     @unique
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  role        Role       @default(USER)
+  departement String
+  password    String
 
   aquariums Aquarium[]
   materials Material[]

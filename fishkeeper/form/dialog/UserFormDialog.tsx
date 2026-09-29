@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';
 
+import { EROLE } from '@/constants/enum/role.enum';
 import type { IUser } from '../../interface/entity/user.entity';
 import UserForm from '../form/UserForm';
 import type { UserFormValues } from '../schema/user.schema';
@@ -45,8 +46,13 @@ export default function UserFormDialog({
                 <UserForm
                     initialValues={
                         data
-                            ? { name: data.name, email: data.email }
-                            : undefined
+                            ? {
+                                  name: data.name,
+                                  email: data.email,
+                                  role: data.role ?? EROLE.USER,
+                                    departement: data.departement,
+                              }
+                                : { role: EROLE.USER, password: '' }
                     }
                     isLoading={isLoading}
                     onSubmit={handleSubmit}
