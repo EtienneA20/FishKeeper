@@ -32,14 +32,22 @@ const NAV_ITEMS = [
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ open: boolean }>(
   ({ theme, open }) => ({
     width: open ? OPEN_WIDTH : CLOSE_WIDTH,
-    transition: theme.transitions.create('width'),
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+    boxSizing: 'border-box',
     '& .MuiDrawer-paper': {
+      position: 'static', 
       width: open ? OPEN_WIDTH : CLOSE_WIDTH,
-      transition: theme.transitions.create('width'),
+      minHeight: '100%',
+      transition: theme.transitions.create('width', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
       backgroundColor: '#031c38',
       color: '#8fa0b5',
       overflowX: 'hidden',
       border: 'none',
+      boxSizing: 'border-box',
     },
   })
 );
@@ -69,6 +77,7 @@ export default function AppSidebar() {
         </IconButton>
       </Box>
 
+      {/* Liste des liens */}
       <List disablePadding>
         {NAV_ITEMS.map((item) => (
           <SidebarItem
