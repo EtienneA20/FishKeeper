@@ -22,7 +22,6 @@
 
 # production
 /build
-
 # misc
 .DS_Store
 *.pem
@@ -46,3 +45,4 @@ next-env.d.ts
 /generated/prisma/
 
 .next/
+*.db

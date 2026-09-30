@@ -10,51 +10,58 @@ import { useUserTable } from '../../hooks/table/useUserTable';
 import type { UserFormValues } from '../../form/schema/user.schema';
 import type { IUser } from '../../interface/entity/user.entity';
 import { PlusIcon } from 'lucide-react';
+import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
+import UserMenuPopover from '@/components/UserMenuPopover';
 
 export default function UserListPage(): React.JSX.Element {
 	const [users, setUsers] = useState<IUser[]>([]);
 	const [isSaving, setIsSaving] = useState(false);
+	const [openUserState, setOpenUserState] = useState(false);
+
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const disclosure = useCrudDisclosure<IUser>();
 
 	useEffect(() => {
+		let isMounted = true;
+
 		const loadUsers = async (): Promise<void> => {
 			try {
-				const response = await fetch('/api/users');
-				if (!response.ok) throw new Error('Impossible de charger les utilisateurs.');
-				setUsers((await response.json()) as IUser[]);
+				const loadedUsers = await getUsers();
+				if (isMounted) {
+					setUsers(loadedUsers);
+				}
 			} catch (loadError) {
-				setError(loadError instanceof Error ? loadError.message : 'Une erreur est survenue.');
+				if (isMounted) {
+					setError(loadError instanceof Error ? loadError.message : 'Une erreur est survenue.');
+				}
 			} finally {
-				setIsLoading(false);
+				if (isMounted) {
+					setIsLoading(false);
+				}
 			}
 		};
 
 		void loadUsers();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	const handleSave = async (
 		values: UserFormValues,
-		currentUser: IUser | null,
+		data: IUser | null,
 	): Promise<void> => {
 		setIsSaving(true);
 
 		try {
-			const response = await fetch('/api/users', {
-				method: currentUser ? 'PUT' : 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(currentUser ? { id: currentUser.id, ...values } : values),
-			});
-
-			if (!response.ok) throw new Error('Impossible d’enregistrer cet utilisateur.');
-
-			const savedUser = (await response.json()) as IUser;
-			setUsers((currentUsers) =>
-				currentUser
-					? currentUsers.map((user) => user.id === savedUser.id ? savedUser : user)
-					: [...currentUsers, savedUser],
-			);
+			if (data) {
+				await updateUser(data.id, values);
+			} else {
+				await createUser(values);
+			}
+			setUsers(await getUsers());
 		} catch (saveError) {
 			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
 			throw saveError;
@@ -64,18 +71,17 @@ export default function UserListPage(): React.JSX.Element {
 	};
 
 	const handleDelete = async (id: string): Promise<void> => {
-		const response = await fetch('/api/users', {
-			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id }),
-		});
+		setIsSaving(true);
 
-		if (!response.ok) {
-			setError('Impossible de supprimer cet utilisateur.');
-			return;
+		try {
+			await deleteUser(id);
+			setUsers(await getUsers());
+		} catch (saveError) {
+			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
+			throw saveError;
+		} finally {
+			setIsSaving(false);
 		}
-
-		setUsers((currentUsers) => currentUsers.filter((user) => user.id !== id));
 	};
 
 	const columns = useUserTable({
@@ -86,6 +92,7 @@ export default function UserListPage(): React.JSX.Element {
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
 			<Stack spacing={3} >
+				<UserMenuPopover />
 				<Stack
 					direction={{ xs: 'column', sm: 'row' }}
 					spacing={2}

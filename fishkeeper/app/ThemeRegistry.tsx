@@ -6,8 +6,19 @@ import type { EmotionCache } from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { UserProvider, UserContext } from '@/contexts/UserContext';
-import { useContext } from 'react';
+import { UserProvider } from '@/contexts/UserContext';
+import { SessionProvider } from 'next-auth/react';
+import { useUser } from '@/hooks/contexts/useUserContext';
+
+
+const theme = createTheme({
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#0288d1',
+        },
+    },
+});
 
 interface ThemeRegistryProps {
     children: React.ReactNode;
@@ -15,8 +26,10 @@ interface ThemeRegistryProps {
 
 // Composant interne qui consomme le thème du UserContext
 function InnerThemeProvider({ children }: { children: React.ReactNode }) {
-    const userContext = useContext(UserContext);
-    const isDark = userContext?.theme ?? false;
+    const userContext = useUser();
+
+
+    const isDark = userContext.isDarkTheme;
 
     // Création dynamique du thème MUI (Clair ou Sombre)
     const theme = useMemo(
@@ -92,9 +105,14 @@ export default function ThemeRegistry({ children }: ThemeRegistryProps): React.J
 
     return (
         <CacheProvider value={cache}>
-            <UserProvider>
-                <InnerThemeProvider>{children}</InnerThemeProvider>
-            </UserProvider>
+            <SessionProvider>
+                <UserProvider>  
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                        {children}
+                    </ThemeProvider>
+                </UserProvider>
+            </SessionProvider>
         </CacheProvider>
     );
 }

@@ -1,7 +1,8 @@
 'use client';
 
 import { UserState, IUser } from '@/interface/entity/user.entity';
-import React, { createContext, useState, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
+import React, { createContext, useEffect, useMemo, useState } from 'react';
 
 export const UserContext = createContext<UserState | undefined>(undefined);
 
@@ -13,16 +14,34 @@ export function UserProvider({
     children,
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
-    // je veux save le théme qu'a choisi le user genre bool clair = 0 dark = 1
-    const [theme, setTheme] = useState<boolean>(false);
+    const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
+    const { data: session, status } = useSession();
+   
+    useEffect(() => {
+        if (status === 'authenticated' && session.user) {
+            setUser({
+                id: session.user.id,
+                name: session.user.name ?? '',
+                email: session.user.email ?? '',
+                departement: session.user.department ?? '',
+                role: session.user.role,
+            });
+            return;
+        }
+
+        if (status === 'unauthenticated') {
+            setUser(null);
+        }
+    }, [session, status]);
+
     const contextValue = useMemo(
         () => ({
             user,
             setUser,
-            theme,
-            setTheme,
+            isDarkTheme,
+            setIsDarkTheme,
         }),
-        [user]
+        [user, isDarkTheme]
     );
 
     return (
