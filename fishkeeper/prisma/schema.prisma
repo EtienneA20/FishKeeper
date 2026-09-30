@@ -18,10 +18,11 @@ datasource db {
 model User {
   id          String     @id @default(uuid())
   name        String
-  email       String     @unique
+  email       String?     @unique
   role        Role       @default(USER)
-  departement String
+  departement String?
   password    String
+  imageURL    String?
 
   aquariums Aquarium[]
   materials Material[]
@@ -33,8 +34,8 @@ model Aquarium {
   volume           Int
   dimension        Json?
 
-  owner            User              @relation(fields: [ownerId], references: [id])
-  ownerId          String
+  owner            User?              @relation(fields: [ownerId], references: [id])
+  ownerId          String?
 
   materials        Material[]
   measurements     WaterMeasurement[]
@@ -51,17 +52,17 @@ model Aquarium {
 
 model WaterMeasurement {
   id          Int      @id @default(autoincrement())
-  temperature Float
-  ph          Float
-  no2         Float
-  no3         Float
-  nh4         Float
-  gh          Float
-  kh          Float
+  temperature Float?
+  ph          Float?
+  no2         Float?
+  no3         Float?
+  nh4         Float?
+  gh          Float?
+  kh          Float?
   measuredAt  DateTime @default(now())
 
-  aquarium   Aquarium @relation(fields: [aquariumId], references: [id])
-  aquariumId String
+  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
+  aquariumId String?
 
   alerts Alert[]
 
@@ -71,13 +72,14 @@ model WaterMeasurement {
 model Material {
   id         Int       @id @default(autoincrement())
   name       String
-  number     Int
+  number     Int?
 
-  owner      User      @relation(fields: [ownerId], references: [id])
-  ownerId    String
+  owner      User?      @relation(fields: [ownerId], references: [id])
+  ownerId    String?
 
   aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
   aquariumId String?
+  imageURL   String?
 }
 
 // Target and Alert
@@ -123,17 +125,19 @@ model Alert {
 model Specie {
   id          String     @id @default(uuid())
   name        String
-  type        String
-  description String
+  type        String?
+  description String?
 
   aquariumLinks AquariumSpecies[]
   categories    Category[]
+  imageURL    String?
 }
 
 model Category {
-  id    String @id @default(uuid())
-  type  String
-  value String
+  id        String @id @default(uuid())
+  type      String
+  value     String?
+  imageURL  String?
 
   species Specie[]
   @@unique([type, value])
@@ -142,15 +146,16 @@ model Category {
 model AquariumSpecies {
   id         String  @id @default(uuid())
   name       String
-  quantity   Int
+  quantity   Int?
   notes      String?
 
-  aquarium   Aquarium @relation(fields: [aquariumId], references: [id])
-  aquariumId String
-  specie     Specie   @relation(fields: [specieId], references: [id])
-  specieId   String
+  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
+  aquariumId String?
+  specie     Specie?   @relation(fields: [specieId], references: [id])
+  specieId   String?
 
   @@unique([aquariumId, specieId])
+  imageURL   String?
 }
 
 // Maintenance
