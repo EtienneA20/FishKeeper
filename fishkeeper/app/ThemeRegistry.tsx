@@ -20,9 +20,11 @@ const theme = createTheme({
     },
     card: {
       background: '#ffffff',
+      backgroundInput: '#eff4ff',
       colorTitle: '#000000',
       colorText: '#74777e',
-      borderRadius: 3
+      borderRadius: 3,
+      borderColor: '#ddd6d6'
     },
   },
 } as unknown as ThemeOptions);

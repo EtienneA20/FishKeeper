@@ -19,9 +19,9 @@ export default function PageHeaderCard({
   return (
     <Box
       sx={{
-        my: 4, p: 3, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, justifyContent: 'space-between',
-        alignItems: { xs: 'flex-start', md: 'stretch' }, backgroundColor: 'card.background', border: '1px solid #ddd6d6',
-        borderRadius: 4,
+        my: 4, p: 2, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, justifyContent: 'space-between',
+        alignItems: { xs: 'flex-start', md: 'stretch' }, backgroundColor: 'card.background', border: '1px solid', 
+        borderColor: 'card.borderColor', borderRadius: 4
       }}
     >
       <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1.5}}>
