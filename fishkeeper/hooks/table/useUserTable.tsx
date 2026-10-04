@@ -12,6 +12,7 @@ export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps
     { field: 'id', headerName: 'ID', flex: 1, minWidth: 160 },
     { field: 'name', headerName: 'Nom', flex: 1, minWidth: 160 },
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220},
+    { field: 'role', headerName: 'Rôle', flex: 1, minWidth: 160 },
 {
       field: 'actions',
       headerName: 'Actions',

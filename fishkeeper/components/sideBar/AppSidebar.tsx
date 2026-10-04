@@ -53,13 +53,13 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ o
 );
 
 export default function AppSidebar() {
-  const [open, setOpen] = React.useState(false);
-  const pathname = usePathname();
+  const [open, setOpen] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
 
-  React.useEffect(() => {
     const savedState = localStorage.getItem('sidebar_open');
-    if (savedState !== null) setOpen(savedState === 'true');
-  }, []);
+    return savedState === null ? false : savedState === 'true';
+  });
+  const pathname = usePathname();
 
   const toggleDrawer = () => {
     setOpen((prev) => {

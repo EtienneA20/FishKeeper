@@ -22,7 +22,6 @@
 
 # production
 /build
-
 # misc
 .DS_Store
 *.pem
@@ -44,3 +43,4 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma/
+*.db
