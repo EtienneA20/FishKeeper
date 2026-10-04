@@ -17,20 +17,24 @@ export function UserProvider({
     const { data: session, status } = useSession();
 
     useEffect(() => {
-        if (status === 'authenticated' && session.user) {
-            setUser({
-                id: session.user.id,
-                name: session.user.name ?? '',
-                email: session.user.email ?? '',
-                departement: session.user.department ?? '',
-                role: session.user.role,
-            });
-            return;
-        }
+        const timeoutId = window.setTimeout(() => {
+            if (status === 'authenticated' && session.user) {
+                setUser({
+                    id: session.user.id,
+                    name: session.user.name ?? '',
+                    email: session.user.email ?? '',
+                    departement: session.user.department ?? '',
+                    role: session.user.role,
+                });
+                return;
+            }
 
-        if (status === 'unauthenticated') {
-            setUser(null);
-        }
+            if (status === 'unauthenticated') {
+                setUser(null);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
     }, [session, status]);
 
     const contextValue = useMemo(
