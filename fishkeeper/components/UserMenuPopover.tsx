@@ -33,29 +33,18 @@ export default function UserMenuPopover({
     open,
     onClose,
 }: UserMenuPopoverProps): React.JSX.Element {
-    // Cast temporaire pour accéder à theme/setTheme sans modifier user.entity.ts
-    const { user, theme, setTheme } = useUser() as unknown as {
-        user: { name?: string; email?: string } | null;
-        theme?: boolean;
-        setTheme?: (theme: boolean) => void;
-    };
+    // Utilisation directe du contrat réel de UserState (isDarkTheme & setIsDarkTheme)
+    const { user, isDarkTheme, setIsDarkTheme } = useUser();
 
-    // États locaux pour le thème (si absent du context) et les unités
-    const [localTheme, setLocalTheme] = useState<boolean>(false);
+    // État local pour les unités
     const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
-
-    const currentTheme = theme ?? localTheme;
 
     const handleThemeChange = (
         _event: React.MouseEvent<HTMLElement>,
         newTheme: boolean | null
     ) => {
         if (newTheme !== null) {
-            if (setTheme) {
-                setTheme(newTheme);
-            } else {
-                setLocalTheme(newTheme);
-            }
+            setIsDarkTheme(newTheme);
         }
     };
 
@@ -103,7 +92,7 @@ export default function UserMenuPopover({
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
                 <Avatar
                     alt={user?.name ?? 'Alexandre Martin'}
-                    sx={{ width: 56, height: 56, bgcolor: '#0288d1', fontSize: '1.4rem' }}
+                    sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.4rem' }}
                 >
                     {user?.name ? user.name.charAt(0) : 'A'}
                 </Avatar>
@@ -150,9 +139,9 @@ export default function UserMenuPopover({
                     sx={{
                         height: 6,
                         borderRadius: 3,
-                        backgroundColor: '#E2E8F0',
+                        backgroundColor: 'action.hover',
                         '& .MuiLinearProgress-bar': {
-                            backgroundColor: '#0288d1',
+                            backgroundColor: 'primary.main',
                             borderRadius: 3,
                         },
                     }}
@@ -163,7 +152,7 @@ export default function UserMenuPopover({
             <Paper
                 elevation={0}
                 sx={{
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: 'action.hover',
                     p: 1.5,
                     borderRadius: 3,
                     display: 'flex',
@@ -178,15 +167,16 @@ export default function UserMenuPopover({
                         Thème d'affichage
                     </Typography>
                     <ToggleButtonGroup
-                        value={currentTheme}
+                        value={isDarkTheme}
                         exclusive
                         onChange={handleThemeChange}
                         size="small"
                         sx={{
-                            backgroundColor: '#FFFFFF',
+                            backgroundColor: 'background.paper',
                             p: 0.3,
                             borderRadius: 4,
-                            border: '1px solid #E2E8F0',
+                            border: '1px solid',
+                            borderColor: 'divider',
                             '& .MuiToggleButton-root': {
                                 border: 'none',
                                 borderRadius: 3,
@@ -195,11 +185,10 @@ export default function UserMenuPopover({
                                 textTransform: 'none',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
-                                color: '#64748B',
                                 '&.Mui-selected': {
-                                    backgroundColor: '#0F172A',
-                                    color: '#FFFFFF',
-                                    '&:hover': { backgroundColor: '#0F172A' },
+                                    backgroundColor: 'text.primary',
+                                    color: 'background.paper',
+                                    '&:hover': { backgroundColor: 'text.primary' },
                                 },
                             },
                         }}
@@ -224,10 +213,11 @@ export default function UserMenuPopover({
                         onChange={handleUnitChange}
                         size="small"
                         sx={{
-                            backgroundColor: '#FFFFFF',
+                            backgroundColor: 'background.paper',
                             p: 0.3,
                             borderRadius: 4,
-                            border: '1px solid #E2E8F0',
+                            border: '1px solid',
+                            borderColor: 'divider',
                             '& .MuiToggleButton-root': {
                                 border: 'none',
                                 borderRadius: 3,
@@ -236,11 +226,9 @@ export default function UserMenuPopover({
                                 textTransform: 'none',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
-                                color: '#64748B',
                                 '&.Mui-selected': {
-                                    backgroundColor: '#E0F2FE',
-                                    color: '#0369A1',
-                                    '&:hover': { backgroundColor: '#E0F2FE' },
+                                    backgroundColor: 'primary.light',
+                                    color: 'primary.main',
                                 },
                             },
                         }}
@@ -260,11 +248,10 @@ export default function UserMenuPopover({
                     sx={{
                         borderRadius: 5,
                         textTransform: 'none',
-                        borderColor: '#E2E8F0',
-                        color: '#0F172A',
+                        borderColor: 'divider',
+                        color: 'text.primary',
                         fontWeight: 600,
                         py: 0.8,
-                        '&:hover': { backgroundColor: '#F8FAFC', borderColor: '#CBD5E1' },
                     }}
                 >
                     Changer d'utilisateur
@@ -291,11 +278,17 @@ export default function UserMenuPopover({
                 </Button>
             </Box>
 
-            {/* 5. FOOTER */}
+            {/* 5. FOOTER (Correction display: block -> sx) */}
             <Typography
                 variant="caption"
-                display="block"
-                sx={{ textAlign: 'center', color: '#94A3B8', fontFamily: 'monospace', fontSize: '0.7rem', lineHeight: 1.4 }}
+                sx={{
+                    display: 'block',
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    lineHeight: 1.4,
+                }}
             >
                 Fishkeeper OSS v1.4.0 – Projet BUT
                 <br />
