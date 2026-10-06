@@ -1,11 +1,23 @@
 'use client';
 
-import { Box, Button, CircularProgress, Stack, TextField } from '@mui/material';
+import {
+    Box,
+    Button,
+    CircularProgress,
+    FormControl,
+    FormHelperText,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    TextField,
+} from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { userSchema, type UserFormValues } from '../schema/user.schema';
+import { EROLE, ROLE_LABELS } from '@/constants/enum/role.enum';
 
 interface UserFormProps {
     initialValues?: Partial<UserFormValues>;
@@ -26,12 +38,16 @@ export default function UserForm({
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors },
     } = useForm<UserFormValues>({
         resolver: yupResolver(userSchema),
         defaultValues: {
             name: initialValues?.name ?? '',
             email: initialValues?.email ?? '',
+            role: initialValues?.role ?? EROLE.USER,
+            departement: initialValues?.departement ?? '',
+            password: initialValues?.password ?? '',
         },
     });
 
@@ -39,8 +55,11 @@ export default function UserForm({
         reset({
             name: initialValues?.name ?? '',
             email: initialValues?.email ?? '',
+            role: initialValues?.role ?? EROLE.USER,
+            departement: initialValues?.departement ?? '',
+            password: initialValues?.password ?? '',
         });
-    }, [initialValues?.email, initialValues?.name, reset]);
+    }, [initialValues?.email, initialValues?.name, initialValues?.role, initialValues?.departement, initialValues?.password, reset]);
 
     return (
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -63,7 +82,54 @@ export default function UserForm({
                     fullWidth
                     disabled={isLoading}
                 />
-                <Stack direction="row"  spacing={1}>
+
+                <FormControl fullWidth error={Boolean(errors.role)} disabled={isLoading}>
+                    <InputLabel id="role-select-label">Rôle</InputLabel>
+                    <Controller
+                        name="role"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                {...field}
+                                labelId="role-select-label"
+                                label="Rôle"
+                                value={field.value ?? EROLE.USER}
+                                onChange={(event) =>
+                                    field.onChange(event.target.value as EROLE)
+                                }
+                            >
+                                {Object.values(EROLE).map((role, index) => (
+                                    <MenuItem key={index} value={role}>
+                                        {ROLE_LABELS[index]}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        )}
+                    />
+                    {errors.role && (
+                        <FormHelperText>{errors.role.message}</FormHelperText>
+                    )}
+                </FormControl>
+
+                <TextField
+                    label="Département"
+                    {...register('departement')}
+                    error={Boolean(errors.departement)}
+                    helperText={errors.departement?.message}
+                    fullWidth
+                    disabled={isLoading}
+                />
+                <TextField
+                    label="Mot de passe"
+                    type="password"
+                    {...register('password')}
+                    error={Boolean(errors.password)}
+                    helperText={errors.password?.message ?? 'Laissez vide pour conserver le mot de passe actuel.'}
+                    fullWidth
+                    disabled={isLoading}
+                />
+
+                <Stack direction="row" spacing={1}>
                     <Button type="button" onClick={onCancel} disabled={isLoading}>
                         Annuler
                     </Button>

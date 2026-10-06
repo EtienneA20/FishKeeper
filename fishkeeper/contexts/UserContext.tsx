@@ -1,7 +1,8 @@
 'use client';
 
 import { UserState, IUser } from '@/interface/entity/user.entity';
-import React, { createContext, useState, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
+import React, { createContext, useEffect, useMemo, useState } from 'react';
 
 export const UserContext = createContext<UserState | undefined>(undefined);
 
@@ -13,6 +14,28 @@ export function UserProvider({
     children,
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
+    const { data: session, status } = useSession();
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            if (status === 'authenticated' && session.user) {
+                setUser({
+                    id: session.user.id,
+                    name: session.user.name ?? '',
+                    email: session.user.email ?? '',
+                    departement: session.user.department ?? '',
+                    role: session.user.role,
+                });
+                return;
+            }
+
+            if (status === 'unauthenticated') {
+                setUser(null);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [session, status]);
 
     const contextValue = useMemo(
         () => ({
