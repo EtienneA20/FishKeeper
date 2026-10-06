@@ -47,12 +47,13 @@ export default function UserFormDialog({
                     initialValues={
                         data
                             ? {
-                                  name: data.name,
+                                  name: data.name ?? '',
                                   email: data.email,
                                   role: data.role ?? EROLE.USER,
-                                    departement: data.departement,
+                                  departement: data.departement ?? '',
+                                  imageURL: data.imageURL ?? '',
                               }
-                                : { role: EROLE.USER, password: '' }
+                            : { role: EROLE.USER, password: '', imageURL: '' }
                     }
                     isLoading={isLoading}
                     onSubmit={handleSubmit}

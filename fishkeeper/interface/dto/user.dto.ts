@@ -1,5 +1,5 @@
 
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MinLength } from 'class-validator';
 import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
 import { EROLE } from '@/constants/enum/role.enum';
 
@@ -25,4 +25,8 @@ export class IUserDto {
     @IsString()
     @MinLength(8, { message: 'Le mot de passe doit contenir au moins 8 caractères.' })
     password?: string;
+
+    @IsOptional()
+    @IsUrl({}, { message: "L'URL de l'image est invalide." })
+    imageURL?: string;
 }
