@@ -23,19 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          package_json_file: fishkeeper/package.json
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: fishkeeper/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      - run: npm ci
+      - run: npm run lint
 
   types:
     name: Types
@@ -43,20 +38,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          package_json_file: fishkeeper/package.json
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: fishkeeper/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma generate
-      - run: pnpm tsc --noEmit
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
 
   test:
     name: Tests
@@ -64,20 +54,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          package_json_file: fishkeeper/package.json
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: fishkeeper/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma generate
-      - run: pnpm test
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test
 
   build:
     name: Build
@@ -85,25 +70,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          package_json_file: fishkeeper/package.json
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: fishkeeper/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma generate
+      - run: npm ci
+      - run: npx prisma generate
 
       - name: Cache Next.js
         uses: actions/cache@v4
         with:
           path: fishkeeper/.next/cache
-          key: nextjs-${{ hashFiles('fishkeeper/pnpm-lock.yaml') }}-${{ hashFiles('fishkeeper/**/*.ts', 'fishkeeper/**/*.tsx', '!fishkeeper/node_modules/**', '!fishkeeper/.next/**') }}
-          restore-keys: nextjs-${{ hashFiles('fishkeeper/pnpm-lock.yaml') }}-
+          key: nextjs-${{ hashFiles('fishkeeper/package-lock.json') }}-${{ hashFiles('fishkeeper/**/*.ts', 'fishkeeper/**/*.tsx', '!fishkeeper/node_modules/**', '!fishkeeper/.next/**') }}
+          restore-keys: nextjs-${{ hashFiles('fishkeeper/package-lock.json') }}-
 
-      - run: pnpm build
+      - run: npm run build
