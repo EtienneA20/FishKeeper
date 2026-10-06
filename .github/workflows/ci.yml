@@ -6,38 +6,32 @@ on:
     branches: [dev]
 
 jobs:
-  test:
+  quality:
+    name: Lint, types, tests, build
     runs-on: ubuntu-latest
 
-    env:
-      DATABASE_URL: file:./test.db
+    defaults:
+      run:
+        working-directory: fishkeeper
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fishkeeper/package.json
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: fishkeeper/.nvmrc
           cache: pnpm
+          cache-dependency-path: fishkeeper/pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
 
       - name: Cache Next.js
         uses: actions/cache@v4
         with:
-          path: .next/cache
-          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('src/**') }}
-          restore-keys: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
-
-      - run: pnpm prisma generate
-      - run: pnpm prisma migrate deploy
-
-      - run: pnpm lint
-      - run: pnpm tsc --noEmit
-      - run: pnpm test
-      - run: pnpm build
-
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+          path: fishkeeper/.next/cache
+          key: nextjs-${{ hashFiles('fishkeeper/pnpm-lock.yaml') }}-${{ hashFiles('fishkeeper/**/*.ts', 'fishkeeper/**/*.tsx', '!fishkeeper/node_modules/**', '!fishkeeper/.next/**') }}
+          restore-keys: nextjs-${{ hashFiles('fishkeeper/pnpm-lock.yaml') }}-
