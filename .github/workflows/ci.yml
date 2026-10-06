@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: fishkeeper/.nvmrc
+          node-version: 22
           cache: pnpm
           cache-dependency-path: fishkeeper/pnpm-lock.yaml
 
@@ -50,7 +50,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: fishkeeper/.nvmrc
+          node-version: 22
           cache: pnpm
           cache-dependency-path: fishkeeper/pnpm-lock.yaml
 
@@ -71,7 +71,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: fishkeeper/.nvmrc
+          node-version: 22
           cache: pnpm
           cache-dependency-path: fishkeeper/pnpm-lock.yaml
 
@@ -92,7 +92,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: fishkeeper/.nvmrc
+          node-version: 22
           cache: pnpm
           cache-dependency-path: fishkeeper/pnpm-lock.yaml
 
