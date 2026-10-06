@@ -1,5 +1,5 @@
 import UserListPage from './UserListPage';
 
-export default function UserPage(): React.JSX.Element {
+export default function UserHomePage(): React.JSX.Element {
     return <UserListPage />;
 }
