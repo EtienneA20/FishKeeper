@@ -2,7 +2,7 @@ import { Typography, Container, Box } from '@mui/material';
 import SetMealTwoToneIcon from '@mui/icons-material/SetMealTwoTone';
 
 
-export default function Home() {
+export default function aquariumsHomePage() {
     return (
         <Container maxWidth="sm">
             <Box

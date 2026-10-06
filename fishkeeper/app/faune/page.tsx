@@ -1,7 +1,7 @@
 import { Typography, Container, Box } from '@mui/material';
 import { HomeIcon } from 'lucide-react';
 
-export default function Home() {
+export default function fauneHomePage() {
     return (
         <Container maxWidth="sm">
             <Box

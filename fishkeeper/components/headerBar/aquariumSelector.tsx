@@ -15,19 +15,19 @@ const MOCK_AQUARIUMS = [
   {
     id: 1,
     name: 'Amazonien Discus 350L',
-    image: '/images.jpeg', 
+    image: 'https://images.truffaut.com/media/wysiwyg/ANIMAUX/Poissons/Plantes_et_decoration/creer-aquarium-amazonien-1.jpg', 
     volume: '350L',
   },
   {
     id: 2,
     name: 'Nano Récifal 60L',
-    image: '/Logo.png',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Aquarium_r%C3%A9cifal.JPG?utm_source=fr.wikipedia.org&utm_campaign=index&utm_content=original',
     volume: '60L',
   },
   {
     id: 3,
     name: 'Aquascaping Iwagumi 120L',
-    image: '/janeiro.jpg',
+    image: 'https://aquarioslands.com/wp-content/uploads/2025/09/aquascaping.jpeg',
     volume: '120L',
   },
 ];
@@ -98,7 +98,6 @@ export default function AquariumSelector() {
           {selectedAquarium.name}
         </Typography>
 
-        {/* Flèche déroulante animée */}
         <KeyboardArrowDownIcon
           sx={{
             fontSize: '1.2rem',
