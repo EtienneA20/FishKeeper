@@ -50,7 +50,7 @@ export default function UserFormDialog({
                                   name: data.name,
                                   email: data.email,
                                   role: data.role ?? EROLE.USER,
-                                    departement: data.departement,
+                                    departement: data.departement ?? '',
                               }
                                 : { role: EROLE.USER, password: '' }
                     }
