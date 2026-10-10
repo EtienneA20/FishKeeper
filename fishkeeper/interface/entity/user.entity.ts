@@ -5,7 +5,8 @@ export interface IUser {
     name: string;
     email: string;
     role: EROLE;
-    departement: string;
+    departement: string | null;
+    imageURL: string | null;
 }
 
 export interface UserState {

@@ -3,92 +3,95 @@ generator client {
   output   = "../generated/prisma"
 }
 
-enum Role {
-  ADMIN
-  USER
-  SUDO
-}
-
 datasource db {
   provider = "sqlite"
 }
 
-// User
+// ============================================================
+// AUTHENTIFICATION & UTILISATEURS
+// ============================================================
 
 model User {
-  id          String     @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  email       String?     @unique
-  role        Role       @default(USER)
+  email       String   @unique
+  password    String   // hash (bcrypt)
+  role        String   @default("USER")
   departement String?
-  password    String
   imageURL    String?
+  createdAt   DateTime @default(now())
 
-  aquariums Aquarium[]
-  materials Material[]
+  aquariums     Aquarium[]
+  notifications Notification[]
 }
 
+// ============================================================
+// AQUARIUMS
+// ============================================================
+
 model Aquarium {
-  id               String            @id @default(uuid())
-  name             String
-  volume           Int
-  dimension        Json?
+  id          String    @id @default(uuid())
+  name        String
+  grossVolume Float     // litres
+  netVolume   Float     // litres
+  waterType   String    @default("FRESH_SOFT")
+  biotope     String?
+  startedAt   DateTime? // date de mise en eau
+  dimension   String?   // JSON stocké en string sous SQLite
+  createdAt   DateTime  @default(now())
 
-  owner            User?              @relation(fields: [ownerId], references: [id])
-  ownerId          String?
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
 
-  materials        Material[]
   measurements     WaterMeasurement[]
-
   targetRanges     TargetRange[]
   alerts           Alert[]
-  species          AquariumSpecies[]
+  species          AquariumPopulation[]
+  maintenanceLogs  MaintenanceLog[]
   maintenanceTasks MaintenanceTask[]
+  equipments       Equipment[]
+  consumables      Consumable[]
 
   @@index([ownerId])
 }
 
-// Water
+// ============================================================
+// PARAMÈTRES D'EAU
+// ============================================================
 
 model WaterMeasurement {
   id          Int      @id @default(autoincrement())
-  temperature Float?
-  ph          Float?
-  no2         Float?
-  no3         Float?
-  nh4         Float?
-  gh          Float?
-  kh          Float?
   measuredAt  DateTime @default(now())
+  temperature Float?   // °C
+  ph          Float?
+  no2         Float?   // mg/L
+  no3         Float?   // mg/L
+  nh4         Float?   // mg/L (ammonium / ammoniaque)
+  gh          Float?   // °dGH
+  kh          Float?   // °dKH
+  notes       String?
+  createdAt   DateTime @default(now())
 
-  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
-  aquariumId String?
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
 
   alerts Alert[]
 
   @@index([aquariumId, measuredAt])
 }
 
-model Material {
-  id         Int       @id @default(autoincrement())
-  name       String
-  number     Int?
-
-  owner      User?      @relation(fields: [ownerId], references: [id])
-  ownerId    String?
-
-  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
-  aquariumId String?
-  imageURL   String?
-}
-
-// Target and Alert
+// ============================================================
+// PLAGES CIBLES & ALERTES
+// ============================================================
 
 model TargetRange {
-  id        String @id @default(uuid())
-  parameter String
-  min       Float?
-  max       Float?
+  id               String   @id @default(uuid())
+  parameter        String
+  warningMin       Float?
+  warningMax       Float?
+  dangerMin        Float
+  dangerMax        Float
+  isAutoCalculated Boolean  @default(true)
 
   aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
   aquariumId String
@@ -103,7 +106,8 @@ model Alert {
   parameter   String
   value       Float
   targetLimit Float
-  type        String
+  direction   String
+  severity    String
   triggeredAt DateTime  @default(now())
   resolved    Boolean   @default(false)
   resolvedAt  DateTime?
@@ -117,60 +121,186 @@ model Alert {
   targetRange   TargetRange? @relation(fields: [targetRangeId], references: [id], onDelete: SetNull)
   targetRangeId String?
 
+  notifications Notification[]
+
   @@index([aquariumId, resolved])
 }
 
-// Species
+// ============================================================
+// FAUNE & FLORE
+// ============================================================
 
-model Specie {
-  id          String     @id @default(uuid())
-  name        String
-  type        String?
+model Species {
+  id             String          @id @default(uuid())
+  name           String          @unique
+  scientificName String?
+  category       SpeciesCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId     String
+  description    String?
+  imageURL       String?
+
+  waterType      String?
+  minTemperature Float?
+  maxTemperature Float?
+  minPh          Float?
+  maxPh          Float?
+  minGh          Float?
+  maxGh          Float?
+  minKh          Float?
+  maxKh          Float?
+  minVolume      Float? // volume minimal du bac (litres)
+  aggressiveness String?
+
+  aquariumLinks AquariumPopulation[]
+
+  @@index([categoryId])
+}
+
+model SpeciesCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
   description String?
 
-  aquariumLinks AquariumSpecies[]
-  categories    Category[]
-  imageURL    String?
+  species          Species[]
+  incompatibleWith SpeciesCategory[] @relation("CategoryIncompatibilities")
+  incompatibleFrom SpeciesCategory[] @relation("CategoryIncompatibilities")
 }
 
-model Category {
-  id        String @id @default(uuid())
-  type      String
-  value     String?
-  imageURL  String?
+model AquariumPopulation {
+  id           String   @id @default(uuid())
+  name         String?
+  introducedAt DateTime @default(now())
+  notes        String?
+  size         Float?
+  weight       Float?
+  imageURL     String?
 
-  species Specie[]
-  @@unique([type, value])
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
+  species    Species  @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  speciesId  String
+
+  @@unique([aquariumId, speciesId])
 }
 
-model AquariumSpecies {
-  id         String  @id @default(uuid())
-  name       String
-  quantity   Int?
-  notes      String?
+// ============================================================
+// MAINTENANCE & PLANIFICATION
+// ============================================================
 
-  aquarium   Aquarium? @relation(fields: [aquariumId], references: [id])
-  aquariumId String?
-  specie     Specie?   @relation(fields: [specieId], references: [id])
-  specieId   String?
+model MaintenanceLog {
+  id            String   @id @default(uuid())
+  type          String
+  performedAt   DateTime @default(now())
+  waterVolume   Float?   // litres (changement d'eau)
+  waterPercent  Float?   // % du volume net (changement d'eau)
+  notes         String?
 
-  @@unique([aquariumId, specieId])
-  imageURL   String?
-}
-
-// Maintenance
-
-model MaintenanceTask {
-  id            String    @id @default(uuid())
-  title         String
-  frequencyDays Int
-  dueAt         DateTime
-  lastDoneAt    DateTime?
-  isTemplate    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-
-  aquarium   Aquarium @relation(fields: [aquariumId], references: [id])
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
   aquariumId String
 
-  @@index([aquariumId, dueAt])
+  task   MaintenanceTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId String?
+
+  @@index([aquariumId, performedAt])
+}
+
+model MaintenanceTask {
+  id         String    @id @default(uuid())
+  title      String
+  type       String
+  frequency  String
+  interval   Int       @default(1)
+  nextDueAt  DateTime
+  lastDoneAt DateTime?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
+
+  logs          MaintenanceLog[]
+  notifications Notification[]
+
+  @@index([aquariumId, nextDueAt])
+}
+
+model MaintenanceTemplate {
+  id           String  @id @default(uuid())
+  title        String
+  type         String
+  frequency    String
+  interval     Int     @default(1)
+  waterPercent Float?  // pré-remplissage pour un changement d'eau
+  description  String?
+}
+
+// ============================================================
+// MATÉRIEL
+// ============================================================
+
+model Equipment {
+  id                  String    @id @default(uuid())
+  name                String
+  type                String
+  brand               String?
+  model               String?
+  status              String    @default("WORKING")
+  purchasedAt         DateTime?
+  maintenanceInterval Int?      // jours
+  lastMaintainedAt    DateTime?
+  notes               String?
+  imageURL            String?
+
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
+
+  @@index([aquariumId])
+}
+
+// ============================================================
+// CONSOMMABLES
+// ============================================================
+
+model Consumable {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  brand       String?
+  quantity    Float?
+  unit        String?
+  purchasedAt DateTime?
+  expiresAt   DateTime?
+  notes       String?
+  imageURL    String?
+  createdAt   DateTime @default(now())
+
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  aquariumId String
+
+  @@index([aquariumId, type])
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String    @id @default(uuid())
+  type      String
+  subject   String
+  body      String
+  status    String    @default("PENDING")
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  alert   Alert?  @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  alertId String?
+
+  task   MaintenanceTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId String?
+
+  @@index([userId, status])
 }
