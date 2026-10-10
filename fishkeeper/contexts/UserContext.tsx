@@ -25,7 +25,7 @@ export function UserProvider({
                     email: session.user.email ?? '',
                     departement: session.user.department ?? '',
                     role: session.user.role,
-                    imageURL: null,
+                    imageURL: session.user.imageUrl ?? "",
                 });
                 return;
             }
