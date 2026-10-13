@@ -7,6 +7,7 @@ export interface UserFormValues {
     role: EROLE;
     departement: string;
     password?: string;
+    imageURL?: string;
 }
 
 export const userSchema: yup.ObjectSchema<UserFormValues> = yup.object({
@@ -30,4 +31,10 @@ export const userSchema: yup.ObjectSchema<UserFormValues> = yup.object({
         'Le mot de passe doit contenir au moins 8 caractères.',
         (value) => !value || value.length >= 8,
     ),
+    imageURL: yup
+        .string()
+        .trim()
+        .transform((value) => (value === '' ? undefined : value))
+        .url("L'URL de l'image est invalide.")
+        .optional(),
 });

@@ -48,6 +48,7 @@ export default function UserForm({
             role: initialValues?.role ?? EROLE.USER,
             departement: initialValues?.departement ?? '',
             password: initialValues?.password ?? '',
+            imageURL: initialValues?.imageURL ?? '',
         },
     });
 
@@ -58,8 +59,9 @@ export default function UserForm({
             role: initialValues?.role ?? EROLE.USER,
             departement: initialValues?.departement ?? '',
             password: initialValues?.password ?? '',
+            imageURL: initialValues?.imageURL ?? '',
         });
-    }, [initialValues?.email, initialValues?.name, initialValues?.role, initialValues?.departement, initialValues?.password, reset]);
+    }, [initialValues?.email, initialValues?.name, initialValues?.role, initialValues?.departement, initialValues?.password, initialValues?.imageURL, reset]);
 
     return (
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -116,6 +118,15 @@ export default function UserForm({
                     {...register('departement')}
                     error={Boolean(errors.departement)}
                     helperText={errors.departement?.message}
+                    fullWidth
+                    disabled={isLoading}
+                />
+                <TextField
+                    label="URL de l'image"
+                    type="url"
+                    {...register('imageURL')}
+                    error={Boolean(errors.imageURL)}
+                    helperText={errors.imageURL?.message}
                     fullWidth
                     disabled={isLoading}
                 />
