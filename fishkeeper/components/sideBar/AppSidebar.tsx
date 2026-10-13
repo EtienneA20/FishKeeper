@@ -20,7 +20,6 @@ const OPEN_WIDTH = '14.5rem';
 const CLOSE_WIDTH = '4.5rem';
 const SIDEBAR_STORAGE_KEY = 'sidebar_open';
 const SIDEBAR_CHANGE_EVENT = 'sidebar-preference-change';
-
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/', icon: <DashboardTwoToneIcon /> },
   { label: 'Mes Aquariums', href: '/aquariums', icon: <SetMealTwoToneIcon /> },
@@ -33,13 +32,13 @@ const NAV_ITEMS = [
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ open: boolean }>(
   ({ theme, open }) => ({
-    width: open ? OPEN_WIDTH : CLOSE_WIDTH,
+    width: open ? '14.5 rem' : '4.5 rem',
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
     '& .MuiDrawer-paper': {
       position: 'static', 
-      width: open ? OPEN_WIDTH : CLOSE_WIDTH,
+      width: open ? '14.5 rem' : '4.5 rem',
       minHeight: '100%',
       transition: theme.transitions.create('width', {
         easing: theme.transitions.easing.sharp,
