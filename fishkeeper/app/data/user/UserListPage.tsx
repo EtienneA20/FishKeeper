@@ -13,15 +13,16 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
-import UserFormDialog from '../../form/dialog/UserFormDialog';
-import { useCrudDisclosure } from '../../hooks/useCrudDiclosure';
-import { useUserTable } from '../../hooks/table/useUserTable';
-import type { UserFormValues } from '../../form/schema/user.schema';
-import type { IUser } from '../../interface/entity/user.entity';
+
 import { PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
 import UserCard from './UserCard';
+import UserFormDialog from '@/form/dialog/UserFormDialog';
+import { UserFormValues } from '@/form/schema/user.schema';
+import { useUserTable } from '@/hooks/table/useUserTable';
+import { useCrudDisclosure } from '@/hooks/useCrudDiclosure';
+import { IUser } from '@/interface/entity/user.entity';
 
 export default function UserListPage(): React.JSX.Element {
 	const [users, setUsers] = useState<IUser[]>([]);
