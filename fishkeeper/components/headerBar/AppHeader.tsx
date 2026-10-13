@@ -14,8 +14,10 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import Image from 'next/image';
 import AquariumSelector from './aquariumSelector';
 import UserMenuPopover from './UserMenuPopover';
+import { useUser } from '@/hooks/contexts/useUserContext';
 
 export default function AppHeader() {
+  const { user } = useUser();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -86,10 +88,11 @@ export default function AppHeader() {
           <Box sx={{ flexGrow: 0 }}>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0.5 }}>
                 <Avatar
-                  alt="Utilisateur"
+                  src={user?.imageURL ?? undefined}
+                  alt={user?.name ?? 'Utilisateur'}
                   sx={{ width: 36, height: 36, bgcolor: '#031c38', fontSize: '0.9rem' }}
                 >
-                  FK
+                  {user?.name?.trim().charAt(0).toUpperCase() || ''}
                 </Avatar>
               </IconButton>
             <UserMenuPopover

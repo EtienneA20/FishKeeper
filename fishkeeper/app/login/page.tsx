@@ -26,7 +26,7 @@ export default function LoginPage(): React.JSX.Element {
                     email: values.email,
                     departement: values.departement,
                     password: values.password,
-                    imageUrl: values.imageUrl,
+                    imageURL: values.imageURL,
                 });
             }
 
