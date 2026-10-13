@@ -23,7 +23,8 @@ CREATE TABLE "Consumable" (
     "imageURL" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "aquariumId" TEXT NOT NULL,
-    CONSTRAINT "Consumable_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Consumable_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Consumable_quantity_check" CHECK ("quantity" >= 0)
 );
 
 -- CreateIndex

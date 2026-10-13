@@ -22,7 +22,10 @@ CREATE TABLE "Aquarium" (
     "dimension" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "ownerId" TEXT NOT NULL,
-    CONSTRAINT "Aquarium_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Aquarium_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Aquarium_grossVolume_check" CHECK ("grossVolume" > 0),
+    CONSTRAINT "Aquarium_netVolume_check" CHECK ("netVolume" > 0),
+    CONSTRAINT "Aquarium_netVolume_lte_gross_check" CHECK ("netVolume" <= "grossVolume")
 );
 
 -- CreateTable
@@ -39,7 +42,14 @@ CREATE TABLE "WaterMeasurement" (
     "notes" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "aquariumId" TEXT NOT NULL,
-    CONSTRAINT "WaterMeasurement_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "WaterMeasurement_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "WaterMeasurement_temperature_check" CHECK ("temperature" BETWEEN 0 AND 50),
+    CONSTRAINT "WaterMeasurement_ph_check" CHECK ("ph" BETWEEN 0 AND 14),
+    CONSTRAINT "WaterMeasurement_no2_check" CHECK ("no2" >= 0),
+    CONSTRAINT "WaterMeasurement_no3_check" CHECK ("no3" >= 0),
+    CONSTRAINT "WaterMeasurement_nh4_check" CHECK ("nh4" >= 0),
+    CONSTRAINT "WaterMeasurement_gh_check" CHECK ("gh" >= 0),
+    CONSTRAINT "WaterMeasurement_kh_check" CHECK ("kh" >= 0)
 );
 
 -- CreateTable
@@ -52,7 +62,11 @@ CREATE TABLE "TargetRange" (
     "dangerMax" REAL NOT NULL,
     "isAutoCalculated" BOOLEAN NOT NULL DEFAULT true,
     "aquariumId" TEXT NOT NULL,
-    CONSTRAINT "TargetRange_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "TargetRange_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "TargetRange_danger_order_check" CHECK ("dangerMin" <= "dangerMax"),
+    CONSTRAINT "TargetRange_warning_order_check" CHECK ("warningMin" <= "warningMax"),
+    CONSTRAINT "TargetRange_warningMin_in_danger_check" CHECK ("warningMin" < "dangerMin"),
+    CONSTRAINT "TargetRange_warningMax_in_danger_check" CHECK ("warningMax" < "dangerMax")
 );
 
 -- CreateTable
@@ -93,7 +107,20 @@ CREATE TABLE "Species" (
     "maxKh" REAL,
     "minVolume" REAL,
     "aggressiveness" TEXT,
-    CONSTRAINT "Species_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "SpeciesCategory" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Species_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "SpeciesCategory" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Species_minTemperature_check" CHECK ("minTemperature" BETWEEN 0 AND 50),
+    CONSTRAINT "Species_maxTemperature_check" CHECK ("maxTemperature" BETWEEN 0 AND 50),
+    CONSTRAINT "Species_temperature_order_check" CHECK ("minTemperature" <= "maxTemperature"),
+    CONSTRAINT "Species_minPh_check" CHECK ("minPh" BETWEEN 0 AND 14),
+    CONSTRAINT "Species_maxPh_check" CHECK ("maxPh" BETWEEN 0 AND 14),
+    CONSTRAINT "Species_ph_order_check" CHECK ("minPh" <= "maxPh"),
+    CONSTRAINT "Species_minGh_check" CHECK ("minGh" >= 0),
+    CONSTRAINT "Species_maxGh_check" CHECK ("maxGh" >= 0),
+    CONSTRAINT "Species_gh_order_check" CHECK ("minGh" <= "maxGh"),
+    CONSTRAINT "Species_minKh_check" CHECK ("minKh" >= 0),
+    CONSTRAINT "Species_maxKh_check" CHECK ("maxKh" >= 0),
+    CONSTRAINT "Species_kh_order_check" CHECK ("minKh" <= "maxKh"),
+    CONSTRAINT "Species_minVolume_check" CHECK ("minVolume" >= 0)
 );
 
 -- CreateTable
@@ -115,7 +142,9 @@ CREATE TABLE "AquariumPopulation" (
     "aquariumId" TEXT NOT NULL,
     "speciesId" TEXT NOT NULL,
     CONSTRAINT "AquariumPopulation_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "AquariumPopulation_speciesId_fkey" FOREIGN KEY ("speciesId") REFERENCES "Species" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "AquariumPopulation_speciesId_fkey" FOREIGN KEY ("speciesId") REFERENCES "Species" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "AquariumPopulation_size_check" CHECK ("size" >= 0),
+    CONSTRAINT "AquariumPopulation_weight_check" CHECK ("weight" >= 0)
 );
 
 -- CreateTable
@@ -129,7 +158,9 @@ CREATE TABLE "MaintenanceLog" (
     "aquariumId" TEXT NOT NULL,
     "taskId" TEXT,
     CONSTRAINT "MaintenanceLog_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "MaintenanceLog_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "MaintenanceTask" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "MaintenanceLog_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "MaintenanceTask" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "MaintenanceLog_waterVolume_check" CHECK ("waterVolume" >= 0),
+    CONSTRAINT "MaintenanceLog_waterPercent_check" CHECK ("waterPercent" BETWEEN 0 AND 100)
 );
 
 -- CreateTable
@@ -144,7 +175,8 @@ CREATE TABLE "MaintenanceTask" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "aquariumId" TEXT NOT NULL,
-    CONSTRAINT "MaintenanceTask_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "MaintenanceTask_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "MaintenanceTask_interval_check" CHECK ("interval" >= 1)
 );
 
 -- CreateTable
@@ -155,7 +187,9 @@ CREATE TABLE "MaintenanceTemplate" (
     "frequency" TEXT NOT NULL,
     "interval" INTEGER NOT NULL DEFAULT 1,
     "waterPercent" REAL,
-    "description" TEXT
+    "description" TEXT,
+    CONSTRAINT "MaintenanceTemplate_interval_check" CHECK ("interval" >= 1),
+    CONSTRAINT "MaintenanceTemplate_waterPercent_check" CHECK ("waterPercent" BETWEEN 0 AND 100)
 );
 
 -- CreateTable
@@ -172,7 +206,8 @@ CREATE TABLE "Equipment" (
     "notes" TEXT,
     "imageURL" TEXT,
     "aquariumId" TEXT NOT NULL,
-    CONSTRAINT "Equipment_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Equipment_aquariumId_fkey" FOREIGN KEY ("aquariumId") REFERENCES "Aquarium" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Equipment_maintenanceInterval_check" CHECK ("maintenanceInterval" > 0)
 );
 
 -- CreateTable

@@ -36,6 +36,7 @@ model Aquarium {
   netVolume   Float     // litres
   waterType   String    @default("FRESH_SOFT")
   biotope     String?
+  cycle       String?   @default("CYCLING")
   startedAt   DateTime? // date de mise en eau
   dimension   String?   // JSON stocké en string sous SQLite
   createdAt   DateTime  @default(now())
