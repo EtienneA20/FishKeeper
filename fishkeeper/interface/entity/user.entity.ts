@@ -11,4 +11,6 @@ export interface IUser {
 export interface UserState {
     user: IUser | null;
     setUser: (user: IUser | null) => void;
+    isDarkTheme: boolean;
+    setIsDarkTheme: (isDarkTheme: boolean) => void;
 }

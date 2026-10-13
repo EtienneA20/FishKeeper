@@ -8,15 +8,12 @@ import {
   IconButton,
   Typography,
   Avatar,
-  Menu,
-  MenuItem,
   Badge,
 } from '@mui/material';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import Image from 'next/image';
 import AquariumSelector from './aquariumSelector';
-
-const SETTINGS = ['Mon profil', 'Paramètres', 'Déconnexion'];
+import UserMenuPopover from './UserMenuPopover';
 
 export default function AppHeader() {
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -95,22 +92,11 @@ export default function AppHeader() {
                   FK
                 </Avatar>
               </IconButton>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
+            <UserMenuPopover
               anchorEl={anchorElUser}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              keepMounted
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
-            >
-              {SETTINGS.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ fontSize: '0.875rem' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+            />
           </Box>
         </Box>
       </Toolbar>

@@ -14,6 +14,7 @@ export function UserProvider({
     children,
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
+    const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
     const { data: session, status } = useSession();
 
     useEffect(() => {
@@ -41,8 +42,10 @@ export function UserProvider({
         () => ({
             user,
             setUser,
+            isDarkTheme,
+            setIsDarkTheme,
         }),
-        [user]
+        [user, isDarkTheme]
     );
 
     return (
