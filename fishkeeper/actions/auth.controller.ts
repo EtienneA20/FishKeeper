@@ -9,13 +9,14 @@ export interface RegisterInput {
     email: string;
     departement: string;
     password: string;
+    imageUrl: string;
 }
 
 export async function registerUser(input: RegisterInput): Promise<void> {
     const name = input.name.trim();
     const email = input.email.trim().toLowerCase();
     const departement = input.departement.trim();
-
+    const imageUrl = input.imageUrl.trim();
     if (name.length < 2 || !email.includes('@') || departement.length < 2) {
         throw new Error('Les informations du compte sont invalides.');
     }
@@ -32,6 +33,6 @@ export async function registerUser(input: RegisterInput): Promise<void> {
     const password = await hash(input.password, 12);
 
     await prisma.user.create({
-        data: { name, email, departement, password, role: EROLE.USER },
+        data: { name, email, departement, password, imageUrl, role: EROLE.USER },
     });
 }

@@ -2,11 +2,12 @@ import { EROLE } from "@/constants/enum/role.enum";
 
 export interface IUser {
     id: string;
-    name: string;
+    name?: string | null;
     email: string;
     role: EROLE;
-    departement: string | null;
-    imageURL: string | null;
+    departement?: string | null;
+    imageURL?: string | null;
+
 }
 
 export interface UserState {

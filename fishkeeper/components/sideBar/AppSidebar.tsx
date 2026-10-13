@@ -16,6 +16,8 @@ import SaveAsTwoToneIcon from '@mui/icons-material/SaveAsTwoTone';
 import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
 import SidebarItem from './SidebarItem';
 
+const SIDEBAR_STORAGE_KEY = 'sidebar_open';
+const SIDEBAR_CHANGE_EVENT = 'sidebar-preference-change';
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/', icon: <DashboardTwoToneIcon /> },
   { label: 'Mes Aquariums', href: '/aquariums', icon: <SetMealTwoToneIcon /> },
@@ -50,20 +52,25 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ o
 );
 
 export default function AppSidebar() {
-  const [open, setOpen] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
+  const open = React.useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener('storage', onStoreChange);
+      window.addEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
 
-    const savedState = localStorage.getItem('sidebar_open');
-    return savedState === null ? false : savedState === 'true';
-  });
+      return () => {
+        window.removeEventListener('storage', onStoreChange);
+        window.removeEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+      };
+    },
+    () => window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true',
+    () => false,
+  );
   const pathname = usePathname();
 
   const toggleDrawer = () => {
-    setOpen((prev) => {
-      const nextState = !prev;
-      localStorage.setItem('sidebar_open', String(nextState));
-      return nextState;
-    });
+    const nextState = !open;
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(nextState));
+    window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
   };
 
   return (
