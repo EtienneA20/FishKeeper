@@ -6,11 +6,12 @@ import {
   Users,
   Waves,
 } from 'lucide-react';
-import { Box, Card, CardActionArea, CardContent, Chip, Grid, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Chip, Grid, Stack, Typography } from '@mui/material';
 import prisma from '../../lib/db';
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/auth';
+import DataModuleLink from '../../components/utils/DataModuleLink';
 
 const MODULES = [
   {
@@ -112,11 +113,7 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
                   '&:hover': { transform: 'translateY(-3px)', boxShadow: 5 },
                 }}
               >
-                <CardActionArea
-                  component="a"
-                  href={module.href}
-                  sx={{ height: '100%', display: 'flex', alignItems: 'stretch' }}
-                >
+                <DataModuleLink href={module.href}>
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2.5 }}>
                     <Box
                       sx={{
@@ -145,7 +142,7 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
                       variant="outlined"
                     />
                   </CardContent>
-                </CardActionArea>
+                </DataModuleLink>
               </Card>
             </Grid>
           );
