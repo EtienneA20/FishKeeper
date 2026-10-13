@@ -16,8 +16,6 @@ import SaveAsTwoToneIcon from '@mui/icons-material/SaveAsTwoTone';
 import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
 import SidebarItem from './SidebarItem';
 
-const OPEN_WIDTH = '14.5rem';
-const CLOSE_WIDTH = '4.5rem';
 const SIDEBAR_STORAGE_KEY = 'sidebar_open';
 const SIDEBAR_CHANGE_EVENT = 'sidebar-preference-change';
 const NAV_ITEMS = [
