@@ -14,7 +14,7 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 
 
-import { PlusIcon } from 'lucide-react';
+import {  PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
 import UserCard from './UserCard';
@@ -105,6 +105,7 @@ export default function UserListPage(): React.JSX.Element {
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
 			<Stack spacing={3} >
+				
 				<Stack
 					direction={{ xs: 'column', sm: 'row' }}
 					spacing={2}

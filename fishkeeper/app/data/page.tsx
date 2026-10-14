@@ -12,6 +12,7 @@ import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/auth';
 import DataModuleLink from '../../components/utils/DataModuleLink';
+import ExportJsonButton from './ExportJsonButton';
 
 const MODULES = [
   {
@@ -86,10 +87,10 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
     equipment: counts[4],
     consumables: counts[5],
   };
-
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: { xs: 2, md: 4 } }}>
       <Stack spacing={1} sx={{ mb: 4 }}>
+        <ExportJsonButton></ExportJsonButton>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
           Gestion des données
         </Typography>
@@ -109,12 +110,18 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
                   height: '100%',
                   border: '1px solid',
                   borderColor: 'divider',
+                  borderRadius: 3,
+                  backgroundColor: 'background.paper',
                   transition: 'transform 160ms ease, box-shadow 160ms ease',
-                  '&:hover': { transform: 'translateY(-3px)', boxShadow: 5 },
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: `0 14px 30px ${module.color}22`,
+                    borderColor: `${module.color}66`,
+                  },
                 }}
               >
                 <DataModuleLink href={module.href}>
-                  <CardContent sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2.5 }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2.5, p: 3 }}>
                     <Box
                       sx={{
                         width: 48,
