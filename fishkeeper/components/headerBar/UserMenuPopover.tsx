@@ -18,6 +18,7 @@ import {
     UserCheck,
     LogOut,
 } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import { useUser } from '@/hooks/contexts/useUserContext';
 
 interface UserMenuPopoverProps {
@@ -32,7 +33,7 @@ export default function UserMenuPopover({
     onClose,
 }: UserMenuPopoverProps): React.JSX.Element {
     // Utilisation directe du contrat réel de UserState (isDarkTheme & setIsDarkTheme)
-    const { user, isDarkTheme, setIsDarkTheme } = useUser();
+    const { user,setUser, isDarkTheme, setIsDarkTheme } = useUser();
 
     const handleThemeChange = (
         _event: React.MouseEvent<HTMLElement>,
@@ -43,9 +44,10 @@ export default function UserMenuPopover({
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = async (): Promise<void> => {
         onClose();
-        window.location.href = '/login';
+        setUser(null);
+        await signOut({ callbackUrl: '/login' });
     };
 
     return (
@@ -78,10 +80,11 @@ export default function UserMenuPopover({
             {/* 1. EN-TÊTE UTILISATEUR */}
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
                 <Avatar
-                    alt={user?.name ?? 'Alexandre Martin'}
+                    src={user?.imageURL ?? undefined}
+                    alt={user?.name ?? 'Utilisateur'}
                     sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.4rem' }}
                 >
-                    {user?.name ? user.name.charAt(0) : 'A'}
+                    {user?.name?.trim().charAt(0).toUpperCase() || ''}
                 </Avatar>
 
                 <Box sx={{ flex: 1, minWidth: 0 }}>

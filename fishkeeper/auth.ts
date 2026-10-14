@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    departement : user.departement,
+                    department: user.departement,
                     role: user.role,
                     image: user.imageURL,
                 };
@@ -46,17 +46,38 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id;
+                token.name = user.name;
+                token.email = user.email;
+                token.department = user.department;
                 token.role = user.role;
                 token.picture = user.image;
             }
+
+            if (trigger === 'update' && token.id) {
+                const refreshedUser = await prisma.user.findUnique({
+                    where: { id: token.id },
+                });
+
+                if (refreshedUser) {
+                    token.name = refreshedUser.name;
+                    token.email = refreshedUser.email;
+                    token.department = refreshedUser.departement;
+                    token.role = refreshedUser.role;
+                    token.picture = refreshedUser.imageURL;
+                }
+            }
+
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id;
+                session.user.name = token.name;
+                session.user.email = token.email;
+                session.user.department = token.department;
                 session.user.role = token.role;
                 session.user.image = token.picture;
             }

@@ -2,7 +2,7 @@
 
 import { UserState, IUser } from '@/interface/entity/user.entity';
 import { useSession } from 'next-auth/react';
-import React, { createContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 export const UserContext = createContext<UserState | undefined>(undefined);
 
@@ -15,7 +15,11 @@ export function UserProvider({
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
     const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
-    const { data: session, status } = useSession();
+    const { data: session, status, update } = useSession();
+
+    const refreshSession = useCallback(async (): Promise<void> => {
+        await update();
+    }, [update]);
 
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {
@@ -43,10 +47,11 @@ export function UserProvider({
         () => ({
             user,
             setUser,
+            refreshSession,
             isDarkTheme,
             setIsDarkTheme,
         }),
-        [user, isDarkTheme]
+        [user, isDarkTheme, refreshSession]
     );
 
     return (
