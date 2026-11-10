@@ -47,18 +47,37 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id;
+                token.name = user.name;
+                token.email = user.email;
                 token.role = user.role;
                 token.departement = user.departement ?? null;
                 token.imageURL = user.imageURL ?? null;
             }
+
+            if (trigger === 'update' && token.id) {
+                const refreshedUser = await prisma.user.findUnique({
+                    where: { id: token.id },
+                });
+
+                if (refreshedUser) {
+                    token.name = refreshedUser.name;
+                    token.email = refreshedUser.email;
+                    token.role = refreshedUser.role as EROLE;
+                    token.departement = refreshedUser.departement;
+                    token.imageURL = refreshedUser.imageURL;
+                }
+            }
+
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id;
+                session.user.name = token.name;
+                session.user.email = token.email;
                 session.user.role = token.role;
                 session.user.departement = token.departement ?? null;
                 session.user.imageURL = token.imageURL ?? null;

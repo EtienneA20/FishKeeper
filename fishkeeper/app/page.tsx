@@ -1,7 +1,16 @@
 import { Typography, Container, Box } from '@mui/material';
 import { HomeIcon } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/auth';
 
-export default function Home() {
+export default async function Home() {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        redirect('/login');
+    }
+
     return (
         <Container maxWidth="sm">
             <Box
@@ -13,7 +22,7 @@ export default function Home() {
                 }}
             >
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Bienvenue sur Fishkeeper
+                    Bienvenue {session.user?.name ?? 'sur Fishkeeper'}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                     Le socle technique est prêt.
@@ -23,3 +32,4 @@ export default function Home() {
         </Container>
     );
 }
+ 
