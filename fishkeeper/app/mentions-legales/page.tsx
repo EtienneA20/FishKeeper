@@ -1,60 +1,103 @@
-"use client" ;
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import LegalPage, { type LegalSection } from '@/components/legal/LegalPage';
 
-import React from  "react" ;
-import { Container, Paper, Typography, Box, Divider } from  "@mui/material" ;
+export const metadata: Metadata = {
+    title: 'Mentions légales - Fishkeeper',
+};
 
-export default function MentionsLegalesPage() {
-  return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper sx={{ p: 4, borderRadius: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color:  "#031c38"  }}>
-          Mentions Légales
-        </Typography>
+const REPOSITORY_URL = 'https://github.com/EtienneA20/FishKeeper';
 
-        <Divider sx={{ my: 2 }} />
+const SECTIONS: LegalSection[] = [
+    {
+        title: 'Éditeur',
+        content: (
+            <>
+                <p>
+                    Fishkeeper est un projet étudiant non commercial, réalisé
+                    dans le cadre d’une SAÉ (situation d’apprentissage et
+                    d’évaluation) du BUT Informatique.
+                </p>
+                <p>
+                    <strong>Nom du projet :</strong> Fishkeeper
+                    <br />
+                    <strong>Éditeur :</strong> Équipe projet Fishkeeper
+                    <br />
+                    <strong>Directeur de la publication :</strong> Etienne Audor
+                    (chef de projet)
+                    <br />
+                    <strong>Contact :</strong>{' '}
+                    <a href={`${REPOSITORY_URL}/issues`}>
+                        via les issues du dépôt GitHub
+                    </a>
+                </p>
+            </>
+        ),
+    },
+    {
+        title: 'Hébergement',
+        content: (
+            <p>
+                <strong>Code source :</strong> GitHub, Inc. — 88 Colin P. Kelly
+                Jr. Street, San Francisco, CA 94107, États-Unis —{' '}
+                <a href="https://github.com">github.com</a>
+                <br />
+                <strong>Application :</strong> l’application est actuellement
+                exécutée localement dans le cadre du projet et n’est pas
+                hébergée publiquement.
+            </p>
+        ),
+    },
+    {
+        title: 'Propriété intellectuelle',
+        content: (
+            <p>
+                Le code source de Fishkeeper est consultable sur{' '}
+                <a href={REPOSITORY_URL}>GitHub</a>. Le nom « Fishkeeper », le
+                logo et les contenus de l’application sont la propriété de
+                l’équipe projet. Les bibliothèques, polices et icônes tierces
+                restent la propriété de leurs auteurs respectifs et sont
+                utilisées conformément à leurs licences (voir la page{' '}
+                <Link href="/credits">Crédits</Link>).
+            </p>
+        ),
+    },
+    {
+        title: 'Données personnelles',
+        content: (
+            <p>
+                Les données collectées (adresse e-mail, nom d’utilisateur,
+                données relatives aux aquariums) sont nécessaires au
+                fonctionnement du service et ne sont transmises à aucun tiers.
+                Conformément au RGPD, vous pouvez exercer vos droits d’accès, de
+                rectification, d’effacement et de portabilité en contactant
+                l’équipe. Vous disposez également du droit d’introduire une
+                réclamation auprès de la CNIL (
+                <a href="https://www.cnil.fr">www.cnil.fr</a>). Pour plus de
+                détails, consultez les{' '}
+                <Link href="/cgu">conditions générales d’utilisation</Link>.
+            </p>
+        ),
+    },
+    {
+        title: 'Cookies',
+        content: (
+            <p>
+                Seuls des cookies techniques strictement nécessaires
+                (authentification) sont utilisés. Conformément aux
+                recommandations de la CNIL, ils ne nécessitent pas de
+                consentement préalable.
+            </p>
+        ),
+    },
+];
 
-        <Box sx={{ display:  "flex" , flexDirection:  "column" , gap: 3, mt: 3 }}>
-          <section>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              1. Éditeur de l application
-            </Typography>
-            <Typography variant="body2" color="text.secondary" component="div">
-              <strong>Nom du projet :</strong> Fishkeeper<br />
-              <strong>Responsable de publication :</strong> Équipe Projet Fishkeeper<br />
-              <strong>E-mail :</strong> contact@fishkeeper.local
-            </Typography>
-          </section>
-
-          <section>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              2. Hébergement
-            </Typography>
-            <Typography variant="body2" color="text.secondary" component="div">
-              <strong>Hébergeur :</strong> Vercel Inc.<br />
-              <strong>Adresse :</strong> 440 N Barranca Ave #4133, Covina, CA 91723, USA<br />
-              <strong>Site web :</strong> https://vercel.com
-            </Typography>
-          </section>
-
-          <section>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              3. Propriété intellectuelle
-            </Typography>
-            <Typography variant="body2" color="text.secondary" >
-              L ensemble de cette application relève de la législation française et internationale sur le droit d auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés.
-            </Typography>
-          </section>
-
-          <section>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              4. Contact
-            </Typography>
-            <Typography variant="body2" color="text.secondary" >
-              Pour toute question relative au fonctionnement du site ou à l exercice de vos droits sur vos données, vous pouvez contacter l équipe via l adresse e-mail mentionnée ci-dessus.
-            </Typography>
-          </section>
-        </Box>
-      </Paper>
-    </Container>
-  );
+export default function MentionsLegalesPage(): React.JSX.Element {
+    return (
+        <LegalPage
+            title="Mentions légales"
+            lastUpdated="10 novembre 2026"
+            sections={SECTIONS}
+        />
+    );
 }

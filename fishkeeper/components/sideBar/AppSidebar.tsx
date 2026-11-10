@@ -53,12 +53,17 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ o
 );
 
 export default function AppSidebar() {
-  const [open, setOpen] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
+  // Toujours `false` au premier rendu pour que serveur et client produisent le même HTML.
+  // La préférence sauvegardée est appliquée après l'hydratation.
+  const [open, setOpen] = React.useState(false);
 
-    const savedState = localStorage.getItem('sidebar_open');
-    return savedState === null ? false : savedState === 'true';
-  });
+  React.useEffect(() => {
+    try {
+      if (localStorage.getItem('sidebar_open') === 'true') setOpen(true);
+    } catch {
+      // localStorage indisponible (navigation privée, etc.) : on garde la valeur par défaut
+    }
+  }, []);
   const pathname = usePathname();
 
   const toggleDrawer = () => {
