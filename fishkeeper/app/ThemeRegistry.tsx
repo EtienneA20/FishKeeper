@@ -7,27 +7,37 @@ import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme, CssBaseline, ThemeOptions } from '@mui/material';
 import { UserProvider } from '@/contexts/UserContext';
+import { SessionProvider } from 'next-auth/react';
 
 const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#dbe6ec',
+    breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+        },
     },
-    darkBlueButton: {
-      background: '#0a2540',
-      colorText: '#ffffff',
+    components: {
+        MuiContainer: {
+        styleOverrides: {
+            root: ({ theme }) => ({
+            padding: theme.spacing(2),
+            [theme.breakpoints.up('md')]: {
+                padding: theme.spacing(4),
+            },
+            }),
+        },
+        },
     },
-    card: {
-      background: '#ffffff',
-      backgroundInput: '#eff4ff',
-      colorTitle: '#000000',
-      colorText: '#74777e',
-      borderRadius: 3,
-      borderColor: '#ddd6d6'
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#0288d1',
+        },
     },
-  },
-} as unknown as ThemeOptions);
+});
 
 interface ThemeRegistryProps {
     children: React.ReactNode;
@@ -88,7 +98,9 @@ export default function ThemeRegistry({
         <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <UserProvider>{children}</UserProvider>
+                <SessionProvider>
+                    <UserProvider>{children}</UserProvider>
+                </SessionProvider>
             </ThemeProvider>
         </CacheProvider>
     );
