@@ -26,6 +26,7 @@ export default function LoginPage(): React.JSX.Element {
                     email: values.email,
                     departement: values.departement,
                     password: values.password,
+                    imageURL: values.imageURL,
                 });
             }
 
@@ -39,7 +40,7 @@ export default function LoginPage(): React.JSX.Element {
                 throw new Error('E-mail ou mot de passe invalide.');
             }
 
-            router.push('/user');
+            router.push('/');
             router.refresh();
         } catch (submitError) {
             setError(submitError instanceof Error ? submitError.message : 'Une erreur est survenue.');

@@ -14,9 +14,13 @@ import PetsTwoToneIcon from '@mui/icons-material/PetsTwoTone';
 import ChecklistTwoToneIcon from '@mui/icons-material/ChecklistTwoTone';
 import SaveAsTwoToneIcon from '@mui/icons-material/SaveAsTwoTone';
 import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
+import { useSession } from 'next-auth/react';
+import { canManageData } from '@/constants/enum/role.enum';
 import SidebarItem from './SidebarItem';
 import Link from 'next/link';
 
+const SIDEBAR_STORAGE_KEY = 'sidebar_open';
+const SIDEBAR_CHANGE_EVENT = 'sidebar-preference-change';
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/', icon: <DashboardTwoToneIcon /> },
   { label: 'Mes Aquariums', href: '/aquariums', icon: <SetMealTwoToneIcon /> },
@@ -24,7 +28,7 @@ const NAV_ITEMS = [
   { label: 'Faune et flore', href: '/faune', icon: <PetsTwoToneIcon /> },
   { label: 'Maintenance & Tâches', href: '/maintenance', icon: <ChecklistTwoToneIcon /> },
   { label: 'Matériel', href: '/materiel', icon: <Inventory2TwoToneIcon /> },
-  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon /> },
+  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon />, adminOnly: true },
 ];
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ open: boolean }>(
@@ -53,25 +57,29 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ o
 );
 
 export default function AppSidebar() {
-  // Toujours `false` au premier rendu pour que serveur et client produisent le même HTML.
-  // La préférence sauvegardée est appliquée après l'hydratation.
-  const [open, setOpen] = React.useState(false);
+  const open = React.useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener('storage', onStoreChange);
+      window.addEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
 
-  React.useEffect(() => {
-    try {
-      if (localStorage.getItem('sidebar_open') === 'true') setOpen(true);
-    } catch {
-      // localStorage indisponible (navigation privée, etc.) : on garde la valeur par défaut
-    }
-  }, []);
+      return () => {
+        window.removeEventListener('storage', onStoreChange);
+        window.removeEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+      };
+    },
+    () => window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true',
+    () => false,
+  );
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !('adminOnly' in item) || canManageData(session?.user.role),
+  );
 
   const toggleDrawer = () => {
-    setOpen((prev) => {
-      const nextState = !prev;
-      localStorage.setItem('sidebar_open', String(nextState));
-      return nextState;
-    });
+    const nextState = !open;
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(nextState));
+    window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
   };
 
   return (
@@ -84,7 +92,7 @@ export default function AppSidebar() {
 
       {/* Liste des liens */}
       <List disablePadding>
-        {NAV_ITEMS.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarItem
             key={item.href}
             label={item.label}
