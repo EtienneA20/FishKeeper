@@ -14,6 +14,8 @@ import PetsTwoToneIcon from '@mui/icons-material/PetsTwoTone';
 import ChecklistTwoToneIcon from '@mui/icons-material/ChecklistTwoTone';
 import SaveAsTwoToneIcon from '@mui/icons-material/SaveAsTwoTone';
 import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
+import { useSession } from 'next-auth/react';
+import { canManageData } from '@/constants/enum/role.enum';
 import SidebarItem from './SidebarItem';
 
 const SIDEBAR_STORAGE_KEY = 'sidebar_open';
@@ -25,7 +27,7 @@ const NAV_ITEMS = [
   { label: 'Faune et flore', href: '/faune', icon: <PetsTwoToneIcon /> },
   { label: 'Maintenance & Tâches', href: '/maintenance', icon: <ChecklistTwoToneIcon /> },
   { label: 'Matériel', href: '/materiel', icon: <Inventory2TwoToneIcon /> },
-  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon /> },
+  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon />, adminOnly: true },
 ];
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ open: boolean }>(
@@ -66,6 +68,10 @@ export default function AppSidebar() {
     () => false,
   );
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !('adminOnly' in item) || canManageData(session?.user.role),
+  );
 
   const toggleDrawer = () => {
     const nextState = !open;
@@ -83,7 +89,7 @@ export default function AppSidebar() {
 
       {/* Liste des liens */}
       <List disablePadding>
-        {NAV_ITEMS.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarItem
             key={item.href}
             label={item.label}

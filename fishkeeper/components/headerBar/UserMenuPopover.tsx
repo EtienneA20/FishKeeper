@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Box,
     Popover,
@@ -123,7 +123,7 @@ export default function UserMenuPopover({
                 {/* Switch Thème */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                        Thème d'affichage
+                        Thème d&apos;affichage
                     </Typography>
                     <ToggleButtonGroup
                         value={isDarkTheme}

@@ -7,14 +7,15 @@ declare module 'next-auth' {
             role: EROLE;
             name?: string | null;
             email?: string | null;
-            department?: string | null;
-            imageUrl?: string | null;
+            departement?: string | null;
+            imageURL?: string | null;
         };
     }
 
     interface User {
         role: EROLE;
-        department?: string | null;
+        departement?: string | null;
+        imageURL?: string | null;
     }
 }
 
@@ -22,6 +23,7 @@ declare module 'next-auth/jwt' {
     interface JWT {
         id: string;
         role: EROLE;
-        department?: string | null;
+        departement?: string | null;
+        imageURL?: string | null;
     }
 }
