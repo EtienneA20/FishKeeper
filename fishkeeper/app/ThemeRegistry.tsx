@@ -5,9 +5,33 @@ import createCache from '@emotion/cache';
 import type { EmotionCache } from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
-import { ThemeProvider, createTheme, CssBaseline, ThemeOptions } from '@mui/material';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { UserProvider } from '@/contexts/UserContext';
 import { SessionProvider } from 'next-auth/react';
+
+interface CardPalette {
+    background: string;
+    borderColor: string;
+    colorTitle: string;
+    colorText: string;
+    backgroundInput: string;
+}
+
+interface DarkBlueButtonPalette {
+    background: string;
+    colorText: string;
+}
+
+declare module '@mui/material/styles' {
+    interface Palette {
+        card: CardPalette;
+        darkBlueButton: DarkBlueButtonPalette;
+    }
+    interface PaletteOptions {
+        card?: CardPalette;
+        darkBlueButton?: DarkBlueButtonPalette;
+    }
+}
 
 const theme = createTheme({
     breakpoints: {
@@ -35,6 +59,17 @@ const theme = createTheme({
         mode: 'light',
         primary: {
             main: '#0288d1',
+        },
+        card: {
+            background: '#FFFFFF',
+            borderColor: '#C4C6CE',
+            colorTitle: '#000F22',
+            colorText: '#43474D',
+            backgroundInput: '#E5EEFF',
+        },
+        darkBlueButton: {
+            background: '#0A2540',
+            colorText: '#FFFFFF',
         },
     },
 });
