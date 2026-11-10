@@ -23,7 +23,7 @@ export function UserProvider({
                     id: session.user.id,
                     name: session.user.name ?? '',
                     email: session.user.email ?? '',
-                    departement: session.user.department ?? '',
+                    departement: session.user.departement ?? '',
                     role: session.user.role,
                     imageURL: session.user.imageURL ?? "",
                 });

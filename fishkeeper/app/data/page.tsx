@@ -8,11 +8,9 @@ import {
 } from 'lucide-react';
 import { Box, Card, CardContent, Chip, Grid, Stack, Typography } from '@mui/material';
 import prisma from '../../lib/db';
-import { getServerSession } from 'next-auth/next';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/auth';
+import { requireDataAdminPage } from '@/lib/auth-guard';
 import DataModuleLink from '../../components/utils/DataModuleLink';
-import ExportJsonButton from './ExportJsonButton';
+import ExportJsonButton from '../../components/utils/ExportJsonButton';
 
 const MODULES = [
   {
@@ -66,10 +64,7 @@ const MODULES = [
 ] as const;
 
 export default async function DataHomePage(): Promise<React.JSX.Element> {
-  const session = await getServerSession(authOptions);
-      if (!session) {
-          redirect('/login');
-      }
+  await requireDataAdminPage();
   const counts = await Promise.all([
     prisma.user.count(),
     prisma.aquarium.count(),
@@ -89,14 +84,20 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
   };
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: { xs: 2, md: 4 } }}>
-      <Stack spacing={1} sx={{ mb: 4 }}>
-        <ExportJsonButton></ExportJsonButton>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-          Gestion des données
-        </Typography>
-        <Typography color="text.secondary">
-          Accédez rapidement aux différents référentiels de Fishkeeper.
-        </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        sx={{ mb: 4, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}
+      >
+        <Stack spacing={1}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+            Gestion des données
+          </Typography>
+          <Typography color="text.secondary">
+            Accédez rapidement aux différents référentiels de Fishkeeper.
+          </Typography>
+        </Stack>
+        <ExportJsonButton />
       </Stack>
 
       <Grid container spacing={3}>

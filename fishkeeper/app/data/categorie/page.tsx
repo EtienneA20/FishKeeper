@@ -1,11 +1,7 @@
-import { authOptions } from "@/auth";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { requireDataAdminPage } from '@/lib/auth-guard';
 
-export default async function CategorieDataPage() {
-  const session = await getServerSession(authOptions);
-        if (!session) {
-            redirect('/login');
-        }
-  return <h1>Gestion des catégories</h1>;
+export default async function CategorieDataPage(): Promise<React.JSX.Element> {
+    await requireDataAdminPage();
+
+    return <h1>Gestion des catégories</h1>;
 }
