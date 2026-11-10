@@ -14,6 +14,7 @@ declare module 'next-auth' {
 
     interface User {
         role: EROLE;
+        department?: string | null;
     }
 }
 
@@ -21,5 +22,6 @@ declare module 'next-auth/jwt' {
     interface JWT {
         id: string;
         role: EROLE;
+        department?: string | null;
     }
 }

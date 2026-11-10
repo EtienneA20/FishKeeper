@@ -1,8 +1,9 @@
 'use client';
 
+import { EROLE } from '@/constants/enum/role.enum';
 import { UserState, IUser } from '@/interface/entity/user.entity';
 import { useSession } from 'next-auth/react';
-import React, { createContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 export const UserContext = createContext<UserState | undefined>(undefined);
 
@@ -14,7 +15,12 @@ export function UserProvider({
     children,
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
-    const { data: session, status } = useSession();
+    const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
+    const { data: session, status, update } = useSession();
+
+    const refreshSession = useCallback(async (): Promise<void> => {
+        await update();
+    }, [update]);
 
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {
@@ -24,7 +30,7 @@ export function UserProvider({
                     name: session.user.name ?? '',
                     email: session.user.email ?? '',
                     departement: session.user.department ?? '',
-                    role: session.user.role,
+                    role: session.user.role as EROLE,
                     imageURL: session.user.imageUrl ?? "",
                 });
                 return;
@@ -42,8 +48,11 @@ export function UserProvider({
         () => ({
             user,
             setUser,
+            refreshSession,
+            isDarkTheme,
+            setIsDarkTheme,
         }),
-        [user]
+        [user, isDarkTheme, refreshSession]
     );
 
     return (

@@ -8,17 +8,16 @@ import {
   IconButton,
   Typography,
   Avatar,
-  Menu,
-  MenuItem,
   Badge,
 } from '@mui/material';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import Image from 'next/image';
 import AquariumSelector from './aquariumSelector';
-
-const SETTINGS = ['Mon profil', 'Paramètres', 'Déconnexion'];
+import UserMenuPopover from './UserMenuPopover';
+import { useUser } from '@/hooks/contexts/useUserContext';
 
 export default function AppHeader() {
+  const { user } = useUser();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -89,28 +88,18 @@ export default function AppHeader() {
           <Box sx={{ flexGrow: 0 }}>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0.5 }}>
                 <Avatar
-                  alt="Utilisateur"
+                  src={user?.imageURL ?? undefined}
+                  alt={user?.name ?? 'Utilisateur'}
                   sx={{ width: 36, height: 36, bgcolor: '#031c38', fontSize: '0.9rem' }}
                 >
-                  FK
+                  {user?.name?.trim().charAt(0).toUpperCase() || ''}
                 </Avatar>
               </IconButton>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
+            <UserMenuPopover
               anchorEl={anchorElUser}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              keepMounted
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
-            >
-              {SETTINGS.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ fontSize: '0.875rem' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+            />
           </Box>
         </Box>
       </Toolbar>

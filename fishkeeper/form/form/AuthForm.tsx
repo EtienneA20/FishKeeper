@@ -38,7 +38,7 @@ export default function AuthForm({
             departement: '',
             email: '',
             password: '',
-            imageUrl: '',
+            imageURL: '',
         },
     });
 
@@ -48,7 +48,7 @@ export default function AuthForm({
             departement: '',
             email: '',
             password: '',
-            imageUrl: '',
+            imageURL: '',
         });
     }, [isRegistering, reset]);
 
@@ -77,9 +77,9 @@ export default function AuthForm({
                         />
                         <TextField
                             label="Image Url"
-                            {...register('imageUrl')}
-                            error={Boolean(errors.imageUrl)}
-                            helperText={errors.imageUrl?.message}
+                            {...register('imageURL')}
+                            error={Boolean(errors.imageURL)}
+                            helperText={errors.imageURL?.message}
                             fullWidth
                             disabled={isLoading}
                         />
