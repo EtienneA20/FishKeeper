@@ -1,5 +1,6 @@
 'use client';
 
+import { EROLE } from '@/constants/enum/role.enum';
 import { UserState, IUser } from '@/interface/entity/user.entity';
 import { useSession } from 'next-auth/react';
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
@@ -29,7 +30,7 @@ export function UserProvider({
                     name: session.user.name ?? '',
                     email: session.user.email ?? '',
                     departement: session.user.department ?? '',
-                    role: session.user.role,
+                    role: session.user.role as EROLE,
                     imageURL: session.user.imageUrl ?? "",
                 });
                 return;
