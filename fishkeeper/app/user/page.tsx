@@ -1,13 +1,17 @@
 import UserListPage from './UserListPage';
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/auth';
+import { canManageUsers } from '@/lib/auth/authorization';
+import { getSessionActor } from '@/lib/auth/session';
 
 export default async function UserPage(): Promise<React.JSX.Element> {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    // Reads the role from the database, not from the login token.
+    const currentUser = await getSessionActor();
+    if (!currentUser) {
         redirect('/login');
     }
+    if (!canManageUsers(currentUser.role)) {
+        redirect('/aquariums');
+    }
 
-    return <UserListPage />;
+    return <UserListPage currentUser={currentUser} />;
 }

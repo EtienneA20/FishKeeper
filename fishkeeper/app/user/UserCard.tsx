@@ -6,11 +6,13 @@ import type { IUser } from '../../interface/entity/user.entity';
 
 interface UserCardProps {
     user: IUser;
+    canEdit: boolean;
+    canDelete: boolean;
     onEdit: (user: IUser) => void;
     onDelete: (id: string) => void;
 }
 
-export default function UserCard({ user, onEdit, onDelete }: UserCardProps): React.JSX.Element {
+export default function UserCard({ user, canEdit, canDelete, onEdit, onDelete }: UserCardProps): React.JSX.Element {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -36,10 +38,10 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps): Rea
                         <Typography variant="body2">Département : {user.departement || 'Non renseigné'}</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1}>
-                        <Button variant="outlined" size="small" onClick={() => onEdit(user)}>
+                        <Button variant="outlined" size="small" disabled={!canEdit} onClick={() => onEdit(user)}>
                             Modifier
                         </Button>
-                        <Button variant="contained" color="error" size="small" onClick={() => onDelete(user.id)}>
+                        <Button variant="contained" color="error" size="small" disabled={!canDelete} onClick={() => onDelete(user.id)}>
                             Supprimer
                         </Button>
                     </Stack>

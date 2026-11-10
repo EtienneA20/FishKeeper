@@ -21,9 +21,19 @@ import type { IUser } from '../../interface/entity/user.entity';
 import { PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
+import {
+	canDeleteUser,
+	canEditUser,
+	getAssignableRoles,
+	type RoleHolder,
+} from '@/lib/auth/authorization';
 import UserCard from './UserCard';
 
-export default function UserListPage(): React.JSX.Element {
+interface UserListPageProps {
+	currentUser: RoleHolder;
+}
+
+export default function UserListPage({ currentUser }: UserListPageProps): React.JSX.Element {
 	const [users, setUsers] = useState<IUser[]>([]);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -96,9 +106,15 @@ export default function UserListPage(): React.JSX.Element {
 		}
 	};
 
+	// UI hints only: the server actions enforce the same rules.
+	const canEdit = (user: IUser): boolean => canEditUser(currentUser, user);
+	const canDelete = (user: IUser): boolean => canDeleteUser(currentUser, user);
+
 	const columns = useUserTable({
 		handleOpenEdit: disclosure.openUpdate,
 		handleDelete,
+		canEdit,
+		canDelete,
 	});
 
 	return (
@@ -169,6 +185,8 @@ export default function UserListPage(): React.JSX.Element {
 								<UserCard
 									key={user.id}
 									user={user}
+									canEdit={canEdit(user)}
+									canDelete={canDelete(user)}
 									onEdit={disclosure.openUpdate}
 									onDelete={handleDelete}
 								/>
@@ -181,6 +199,7 @@ export default function UserListPage(): React.JSX.Element {
 			<UserFormDialog
 				open={disclosure.isOpen}
 				data={disclosure.data}
+				roleOptions={getAssignableRoles(currentUser, disclosure.data)}
 				isLoading={isSaving}
 				onClose={disclosure.onClose}
 				onSave={handleSave}

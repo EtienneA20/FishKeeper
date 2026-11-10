@@ -33,6 +33,13 @@ export async function registerUser(input: RegisterInput): Promise<void> {
     const password = await hash(input.password, 12);
 
     await prisma.user.create({
-        data: { name, email, departement, password, imageUrl, role: EROLE.USER },
+        data: {
+            name,
+            email,
+            departement,
+            password,
+            imageURL: imageUrl || null,
+            role: EROLE.USER,
+        },
     });
 }

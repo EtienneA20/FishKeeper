@@ -1,89 +1,143 @@
 'use server';
 
-import { IUserDto } from '@/interface/dto/user.dto';
-import { IUser } from '@/interface/entity/user.entity';
-import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
-import prisma from '@/lib/db';
+import { hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
-import { hash } from 'bcryptjs';
-import { EROLE } from '@/constants/enum/role.enum';
 
-async function requireSession(): Promise<void> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    throw new Error('Vous devez être connecté pour effectuer cette action.');
-  }
+import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
+import { EROLE } from '@/constants/enum/role.enum';
+import { IUserDto } from '@/interface/dto/user.dto';
+import { IUser } from '@/interface/entity/user.entity';
+import {
+    assertCanManageRole,
+    assertCanManageUsers,
+    type RoleHolder,
+} from '@/lib/auth/authorization';
+import { getSessionActor } from '@/lib/auth/session';
+import prisma from '@/lib/db';
+
+async function requireUserManager(): Promise<RoleHolder> {
+    const actor = await getSessionActor();
+    if (!actor) {
+        throw new Error(EERROR_MESSAGE.NOT_AUTHENTICATED);
+    }
+
+    assertCanManageUsers(actor.role);
+    return actor;
+}
+
+async function findTargetUser(id: string): Promise<RoleHolder> {
+    const target = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, role: true },
+    });
+    if (!target) {
+        throw new Error(EERROR_MESSAGE.USER_NOT_FOUND);
+    }
+
+    return { id: target.id, role: target.role as EROLE };
 }
 
 async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
-  const dto = Object.assign(new IUserDto(), userDto);
-  const errors = await validate(dto);
+    const dto = Object.assign(new IUserDto(), userDto);
+    if (typeof dto.email === 'string') {
+        // The login lowercases the e-mail, so stored addresses must be lowercase too.
+        dto.email = dto.email.trim().toLowerCase();
+    }
+    if (!dto.password) {
+        // The form sends '' when the field is left empty: it means "keep the current password".
+        delete dto.password;
+    }
 
-  if (errors.length > 0) {
-    const messages = errors.flatMap((error) =>
-      Object.values(error.constraints ?? {}),
-    );
+    // whitelist drops any field the DTO does not declare (id, createdAt, ...).
+    const errors = await validate(dto, { whitelist: true });
 
-    throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
-  }
+    if (errors.length > 0) {
+        const messages = errors.flatMap((error) =>
+            Object.values(error.constraints ?? {})
+        );
 
-  return dto;
+        throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
+    }
+
+    return dto;
 }
 
 export async function getUsers(): Promise<IUser[]> {
-  await requireSession();
-  const users = await prisma.user.findMany({
-    orderBy: { name: 'asc' },
-  });
+    await requireUserManager();
+    const users = await prisma.user.findMany({
+        omit: { password: true },
+        orderBy: { name: 'asc' },
+    });
 
-  return users.map((user) => ({ ...user, role: user.role as EROLE }));
+    return users.map((user) => ({ ...user, role: user.role as EROLE }));
 }
 
-export async function getUserById(id: string): Promise<IUser| null> {
-  await requireSession();
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
+export async function getUserById(id: string): Promise<IUser | null> {
+    await requireUserManager();
+    const user = await prisma.user.findUnique({
+        where: { id },
+        omit: { password: true },
+    });
 
-  return user ? { ...user, role: user.role as EROLE } : null;
+    return user ? { ...user, role: user.role as EROLE } : null;
 }
 
 export async function createUser(userDto: IUserDto): Promise<void> {
-  await requireSession();
-  const dto = await validateUserDto(userDto);
+    const actor = await requireUserManager();
+    const dto = await validateUserDto(userDto);
+    assertCanManageRole(actor.role, dto.role);
 
-  if (!dto.password) {
-    throw new Error('Le mot de passe est obligatoire à la création.');
-  }
+    if (!dto.password) {
+        throw new Error('Le mot de passe est obligatoire à la création.');
+    }
 
-  await prisma.user.create({
-    data: { ...dto, password: await hash(dto.password, 12) },
-  });
+    await prisma.user.create({
+        data: { ...dto, password: await hash(dto.password, 12) },
+    });
 
-  revalidatePath('/user');
+    revalidatePath('/user');
 }
 
 export async function updateUser(id: string, userDto: IUserDto): Promise<void> {
-  await requireSession();
-  const dto = await validateUserDto(userDto);
+    const actor = await requireUserManager();
+    const target = await findTargetUser(id);
+    const isSelf = target.id === actor.id;
+    if (!isSelf) {
+        assertCanManageRole(actor.role, target.role);
+    }
 
-  const { password, ...userData } = dto;
-  await prisma.user.update({
-    where: { id },
-    data: password ? { ...userData, password: await hash(password, 12) } : userData,
-  });
+    const dto = await validateUserDto(userDto);
+    if (isSelf && dto.role !== target.role) {
+        throw new Error(EERROR_MESSAGE.USER_SELF_ROLE_CHANGE);
+    }
+    if (!isSelf) {
+        assertCanManageRole(actor.role, dto.role);
+    }
 
-  revalidatePath('/user');
+    const { password, ...userData } = dto;
+    await prisma.user.update({
+        where: { id },
+        data: password
+            ? { ...userData, password: await hash(password, 12) }
+            : userData,
+    });
+
+    revalidatePath('/user');
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  await requireSession();
-  await prisma.user.delete({
-    where: { id },
-  });
+    const actor = await requireUserManager();
+    if (id === actor.id) {
+        throw new Error(EERROR_MESSAGE.USER_SELF_DELETE);
+    }
 
-  revalidatePath('/user');
+    const target = await findTargetUser(id);
+    assertCanManageRole(actor.role, target.role);
+
+    await prisma.user.delete({
+        where: { id },
+    });
+
+    revalidatePath('/user');
 }

@@ -73,6 +73,47 @@ Depuis le dossier `fishkeeper` :
 
 L'application est ensuite accessible à l'adresse http://localhost:3000.
 
+## Rôles
+
+| Rôle    | Gestion des utilisateurs                                                        |
+| ------- | ------------------------------------------------------------------------------- |
+| `USER`  | Aucune (redirigé vers `/aquariums`)                                             |
+| `ADMIN` | Voit tous les comptes ; crée, modifie et supprime uniquement les comptes `USER` |
+| `SUDO`  | Gère tous les comptes, y compris `ADMIN` et `SUDO`                              |
+
+Personne ne peut supprimer son propre compte ni changer son propre rôle. Les règles sont dans `lib/auth/authorization.ts` et sont vérifiées par les actions serveur avec le rôle **stocké en base** (pas celui du jeton de connexion) : un compte rétrogradé perd ses droits immédiatement.
+
+## Tests
+
+Les commandes suivantes sont exécutées depuis le dossier `fishkeeper`, après `npm run db:generate` :
+
+```bash
+npm test                 # Tous les tests unitaires, modèles et d'intégration
+npm run test:models      # Contraintes de la base (migrations SQL) et DTO
+npm run test:unit        # Tests unitaires et modèles
+npm run test:integration # Actions serveur, connexion et contrôle des rôles
+npm run test:e2e         # Parcours navigateur avec une base SQLite dédiée
+```
+
+- **Unitaires** (`tests/unit`) : règles des rôles, sans base de données.
+- **Modèles** (`tests/models`) : contraintes `CHECK`, `UNIQUE`, clés étrangères et valeurs par défaut des migrations, et vérification que `schema.prisma` correspond aux migrations.
+- **Intégration** (`tests/integration`) : actions serveur et connexion sur une vraie base SQLite. Seule la session Next.js est simulée.
+- **E2E** (`tests/e2e`) : connexion et gestion des utilisateurs dans Chromium.
+
+Chaque lancement de Vitest crée une base temporaire en appliquant `prisma/migrations` (et non `prisma db push`, qui ignore les contraintes `CHECK` écrites à la main), puis donne une copie à chaque fichier de test. `dev.db` n'est jamais utilisée.
+
+Les tests E2E recréent `e2e.db` à partir des migrations à chaque lancement. Ils utilisent les comptes `user@example.test`, `admin@example.test` et `sudo@example.test` avec le mot de passe `Fishkeeper-test-123!`. Installer le navigateur Playwright une seule fois avant le premier lancement :
+
+```bash
+npx playwright install chromium
+```
+
+Sur les machines de l'IUT (LMDE 7), Playwright ne reconnaît pas le système : il faut préciser la plateforme pour l'installation (les tests se lancent ensuite normalement) :
+
+```bash
+PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=debian13-x64 npx playwright install chromium
+```
+
 ## Gestion de la base de données
 
 Supprimer puis recréer la base locale en réappliquant toutes les migrations :
@@ -88,4 +129,3 @@ Synchroniser directement le schéma avec la base, sans créer de migration :
 ```powershell
 npm run db:push
 ```
-
