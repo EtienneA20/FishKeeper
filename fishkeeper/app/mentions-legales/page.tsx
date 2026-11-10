@@ -38,13 +38,7 @@ const SECTIONS: LegalSection[] = [
         title: 'Hébergement',
         content: (
             <p>
-                <strong>Code source :</strong> GitHub, Inc. — 88 Colin P. Kelly
-                Jr. Street, San Francisco, CA 94107, États-Unis —{' '}
-                <a href="https://github.com">github.com</a>
-                <br />
-                <strong>Application :</strong> l’application est actuellement
-                exécutée localement dans le cadre du projet et n’est pas
-                hébergée publiquement.
+                TO DO 
             </p>
         ),
     },
