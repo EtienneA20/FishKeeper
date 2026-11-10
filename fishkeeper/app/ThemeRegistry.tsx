@@ -22,14 +22,20 @@ interface DarkBlueButtonPalette {
     colorText: string;
 }
 
+interface PagePalette {
+    background: string;
+}
+
 declare module '@mui/material/styles' {
     interface Palette {
         card: CardPalette;
         darkBlueButton: DarkBlueButtonPalette;
+        page: PagePalette;
     }
     interface PaletteOptions {
         card?: CardPalette;
         darkBlueButton?: DarkBlueButtonPalette;
+        page?: PagePalette;
     }
 }
 
@@ -70,6 +76,9 @@ const theme = createTheme({
         darkBlueButton: {
             background: '#0A2540',
             colorText: '#FFFFFF',
+        },
+        page: {
+            background: '#DBE6EC',
         },
     },
 });
