@@ -1,6 +1,7 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
+import { EROLE } from '@/constants/enum/role.enum';
 
 import prisma from '@/lib/db';
 
@@ -39,8 +40,8 @@ export const authOptions: NextAuthOptions = {
                     name: user.name,
                     email: user.email,
                     department: user.departement,
-                    role: user.role,
                     image: user.imageURL,
+                    role: user.role as EROLE,
                 };
             },
         }),
@@ -65,7 +66,7 @@ export const authOptions: NextAuthOptions = {
                     token.name = refreshedUser.name;
                     token.email = refreshedUser.email;
                     token.department = refreshedUser.departement;
-                    token.role = refreshedUser.role;
+                    token.role = refreshedUser.role as EROLE;
                     token.picture = refreshedUser.imageURL;
                 }
             }
@@ -79,7 +80,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.email = token.email;
                 session.user.department = token.department;
                 session.user.role = token.role;
-                session.user.image = token.picture;
+                session.user.imageUrl = token.picture;
             }
             return session;
         },

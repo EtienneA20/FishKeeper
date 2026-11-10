@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { hash } from 'bcryptjs';
+import { EROLE } from '@/constants/enum/role.enum';
 
 async function requireSession(): Promise<void> {
   const session = await getServerSession(authOptions);
@@ -38,7 +39,7 @@ export async function getUsers(): Promise<IUser[]> {
     orderBy: { name: 'asc' },
   });
 
-  return users;
+  return users.map((user) => ({ ...user, role: user.role as EROLE }));
 }
 
 export async function getUserById(id: string): Promise<IUser| null> {
@@ -47,7 +48,7 @@ export async function getUserById(id: string): Promise<IUser| null> {
     where: { id },
   });
 
-  return user;
+  return user ? { ...user, role: user.role as EROLE } : null;
 }
 
 export async function createUser(userDto: IUserDto): Promise<void> {
