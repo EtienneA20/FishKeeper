@@ -3,8 +3,10 @@
 import {
     Box,
     Button,
+    Checkbox,
     CircularProgress,
     FormControl,
+    FormControlLabel,
     FormHelperText,
     InputLabel,
     MenuItem,
@@ -13,10 +15,10 @@ import {
     TextField,
 } from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { userSchema, type UserFormValues } from '../schema/user.schema';
+import { getUserSchema, type UserFormValues } from '../schema/user.schema';
 import { useSession } from 'next-auth/react';
 import { EROLE, EROLE_LABEL, PRIVILEGED_ROLES } from '@/constants/enum/role.enum';
 
@@ -26,6 +28,8 @@ interface UserFormProps {
     onSubmit: (values: UserFormValues) => void | Promise<void>;
     onCancel: () => void;
     submitLabel?: string;
+    /** En édition, le mot de passe n'est modifié que si l'utilisateur le demande. */
+    isEditing?: boolean;
 }
 
 export default function UserForm({
@@ -34,6 +38,7 @@ export default function UserForm({
     onSubmit,
     onCancel,
     submitLabel = 'Enregistrer',
+    isEditing = false,
 }: UserFormProps): React.JSX.Element {
     const { data: session } = useSession();
     const isSudo = session?.user.role === EROLE.SUDO;
@@ -41,14 +46,19 @@ export default function UserForm({
     const assignableRoles = Object.values(EROLE).filter(
         (role) => isSudo || !PRIVILEGED_ROLES.includes(role) || role === initialValues?.role,
     );
+    const [changePassword, setChangePassword] = useState(false);
+    const requirePassword = !isEditing || changePassword;
+    const schema = useMemo(() => getUserSchema(requirePassword), [requirePassword]);
     const {
         register,
         handleSubmit,
         reset,
         control,
+        setValue,
+        clearErrors,
         formState: { errors },
     } = useForm<UserFormValues>({
-        resolver: yupResolver(userSchema),
+        resolver: yupResolver(schema),
         defaultValues: {
             name: initialValues?.name ?? '',
             email: initialValues?.email ?? '',
@@ -137,15 +147,34 @@ export default function UserForm({
                     fullWidth
                     disabled={isLoading}
                 />
-                <TextField
-                    label="Mot de passe"
-                    type="password"
-                    {...register('password')}
-                    error={Boolean(errors.password)}
-                    helperText={errors.password?.message ?? 'Laissez vide pour conserver le mot de passe actuel.'}
-                    fullWidth
-                    disabled={isLoading}
-                />
+                {isEditing && (
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={changePassword}
+                                onChange={(event) => {
+                                    setChangePassword(event.target.checked);
+                                    setValue('password', '');
+                                    clearErrors('password');
+                                }}
+                                disabled={isLoading}
+                            />
+                        }
+                        label="Modifier le mot de passe"
+                    />
+                )}
+                {requirePassword && (
+                    <TextField
+                        label={isEditing ? 'Nouveau mot de passe' : 'Mot de passe'}
+                        type="password"
+                        autoComplete="new-password"
+                        {...register('password')}
+                        error={Boolean(errors.password)}
+                        helperText={errors.password?.message}
+                        fullWidth
+                        disabled={isLoading}
+                    />
+                )}
 
                 <Stack direction="row" spacing={1}>
                     <Button type="button" onClick={onCancel} disabled={isLoading}>

@@ -59,6 +59,7 @@ export default function UserFormDialog({
                     onSubmit={handleSubmit}
                     onCancel={onClose}
                     submitLabel={isEditing ? 'Modifier' : 'Créer'}
+                    isEditing={isEditing}
                 />
             </DialogContent>
         </Dialog>

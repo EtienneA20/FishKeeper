@@ -18,7 +18,6 @@ import { requireRole } from '@/lib/auth-guard';
 
 const FORBIDDEN_MESSAGE = "Vous n'avez pas les droits pour effectuer cette action.";
 
-/** Champs renvoyés au client : le hash du mot de passe n'en fait jamais partie. */
 const PUBLIC_USER_SELECT = {
   id: true,
   name: true,
@@ -37,14 +36,12 @@ function isSudo(session: Session): boolean {
   return session.user.role === EROLE.SUDO;
 }
 
-/** Seul un SUDO peut attribuer un rôle ADMIN ou SUDO. */
 function assertCanAssignRole(session: Session, role: EROLE): void {
   if (PRIVILEGED_ROLES.includes(role) && !isSudo(session)) {
     throw new Error(FORBIDDEN_MESSAGE);
   }
 }
 
-/** Seul un SUDO peut modifier ou supprimer un compte ADMIN ou SUDO. */
 async function assertCanManageTarget(session: Session, targetId: string): Promise<void> {
   const target = await prisma.user.findUnique({
     where: { id: targetId },
@@ -62,6 +59,8 @@ async function assertCanManageTarget(session: Session, targetId: string): Promis
 
 async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
   const dto = Object.assign(new IUserDto(), userDto);
+  if (!dto.password) dto.password = undefined;
+  if (!dto.imageURL) dto.imageURL = undefined;
   const errors = await validate(dto);
 
   if (errors.length > 0) {
