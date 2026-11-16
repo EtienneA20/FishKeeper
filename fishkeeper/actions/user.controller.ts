@@ -46,7 +46,7 @@ async function assertCanManageTarget(session: Session, targetId: string): Promis
   });
 
   if (!target) {
-    throw new Error('Utilisateur introuvable.');
+    throw new Error(EERROR_MESSAGE.USER_NOT_FOUND);
   }
 
   if (!canManageUser(session.user.role, target.role as EROLE)) {
@@ -73,7 +73,8 @@ async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
   dto.imageURL = dto.imageURL?.trim();
   if (!dto.password) dto.password = undefined;
   if (!dto.imageURL) dto.imageURL = undefined;
-  const errors = await validate(dto);
+  // whitelist : ignore tout champ non déclaré dans le DTO (id, createdAt…).
+  const errors = await validate(dto, { whitelist: true });
 
   if (errors.length > 0) {
     const messages = errors.flatMap((error) =>
@@ -164,7 +165,7 @@ export async function deleteUser(id: string): Promise<void> {
   const session = await requireRole(...DATA_ADMIN_ROLES);
 
   if (id === session.user.id) {
-    throw new Error('Vous ne pouvez pas supprimer votre propre compte.');
+    throw new Error(EERROR_MESSAGE.USER_SELF_DELETE);
   }
 
   await assertCanManageTarget(session, id);
