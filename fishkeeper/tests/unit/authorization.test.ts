@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
-import { EROLE } from '@/constants/enum/role.enum';
+import { canManageData, EROLE } from '@/constants/enum/role.enum';
 import {
     assertCanManageRole,
     assertCanManageUsers,
@@ -14,6 +14,18 @@ import {
 } from '@/lib/auth/authorization';
 
 const { USER, ADMIN, SUDO } = EROLE;
+
+describe('data management access (/data)', () => {
+    it.each([
+        [ADMIN, true],
+        [SUDO, true],
+        [USER, false],
+        [null, false],
+        [undefined, false],
+    ])('%s: %s', (role, allowed) => {
+        expect(canManageData(role)).toBe(allowed);
+    });
+});
 
 describe('user management access', () => {
     it.each([ADMIN, SUDO])('%s can manage user accounts', (role) => {

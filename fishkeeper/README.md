@@ -77,7 +77,7 @@ L'application est ensuite accessible à l'adresse http://localhost:3000.
 
 | Rôle    | Gestion des utilisateurs                                                        |
 | ------- | ------------------------------------------------------------------------------- |
-| `USER`  | Aucune (redirigé vers `/aquariums`)                                             |
+| `USER`  | Aucune (redirigé vers `/` s'il ouvre `/data`)                                  |
 | `ADMIN` | Voit tous les comptes ; crée, modifie et supprime uniquement les comptes `USER` |
 | `SUDO`  | Gère tous les comptes, y compris `ADMIN` et `SUDO`                              |
 

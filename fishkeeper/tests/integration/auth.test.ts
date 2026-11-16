@@ -39,7 +39,7 @@ const registration = {
     email: ' NEW.USER@EXAMPLE.TEST ',
     departement: 'Aquariophilie',
     password: 'fishkeeper-test-password',
-    imageUrl: '',
+    imageURL: '',
 };
 
 beforeEach(resetDatabase);
@@ -88,6 +88,7 @@ describe('login', () => {
             const account = await createTestUser({
                 role,
                 email: 'login@example.test',
+                imageURL: 'https://example.test/avatar.png',
             });
 
             await expect(
@@ -100,6 +101,8 @@ describe('login', () => {
                 name: account.name,
                 email: account.email,
                 role,
+                departement: account.departement,
+                imageURL: 'https://example.test/avatar.png',
             });
         }
     );
@@ -134,20 +137,46 @@ describe('login', () => {
         await expect(authorize(credentials)).resolves.toBeNull();
     });
 
-    it('copies the id and role into the token, then into the session', async () => {
+    it('copies the profile into the token, then into the session', async () => {
         const { jwt, session } = authOptions.callbacks!;
-        const user = { id: 'account-id', role: EROLE.ADMIN } as User;
+        const profile = {
+            id: 'account-id',
+            name: 'Admin',
+            email: 'admin@example.test',
+            role: EROLE.ADMIN,
+            departement: 'Loiret',
+            imageURL: null,
+        };
 
-        const token = (await jwt!({ token: {} as JWT, user } as never)) as JWT;
+        const token = (await jwt!({
+            token: {} as JWT,
+            user: profile as User,
+        } as never)) as JWT;
         const result = (await session!({
             session: { user: {}, expires: '' } as Session,
             token,
         } as never)) as Session;
 
-        expect(token).toMatchObject({ id: 'account-id', role: EROLE.ADMIN });
-        expect(result.user).toMatchObject({
-            id: 'account-id',
+        expect(token).toMatchObject(profile);
+        expect(result.user).toMatchObject(profile);
+    });
+
+    it('reloads the profile from the database when the session is updated', async () => {
+        const account = await createTestUser({ role: EROLE.USER });
+        await prisma.user.update({
+            where: { id: account.id },
+            data: { name: 'Renamed', role: EROLE.ADMIN, departement: 'Cher' },
+        });
+
+        const token = (await authOptions.callbacks!.jwt!({
+            token: { id: account.id, role: EROLE.USER } as JWT,
+            trigger: 'update',
+        } as never)) as JWT;
+
+        expect(token).toMatchObject({
+            name: 'Renamed',
             role: EROLE.ADMIN,
+            departement: 'Cher',
         });
     });
 });

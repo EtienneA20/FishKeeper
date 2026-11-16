@@ -6,6 +6,9 @@ const USER = 'user@example.test';
 const ADMIN = 'admin@example.test';
 const SUDO = 'sudo@example.test';
 
+// User management now lives under /data (see app/data/user).
+const USERS_PAGE = '/data/user';
+
 async function openLoginPage(page: Page): Promise<void> {
     // Once React has loaded, next-auth checks the session (twice in dev, StrictMode) and
     // each answer sets a new CSRF cookie. Logging in while one is still pending makes
@@ -18,15 +21,25 @@ async function openLoginPage(page: Page): Promise<void> {
     await page.waitForLoadState('networkidle');
 }
 
-async function logIn(
-    page: Page,
-    email: string,
-    password = PASSWORD
-): Promise<void> {
+/** Logs in and waits for the redirect to the dashboard. */
+async function logIn(page: Page, email: string): Promise<void> {
     await openLoginPage(page);
     await page.getByLabel('E-mail').fill(email);
-    await page.getByLabel('Mot de passe').fill(password);
+    await page.getByLabel('Mot de passe').fill(PASSWORD);
     await page.getByRole('button', { name: 'Se connecter' }).click();
+    await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
+}
+
+async function openUsersPage(page: Page): Promise<void> {
+    await page.goto(USERS_PAGE);
+    await expect(
+        page.getByRole('heading', { name: 'Utilisateurs' })
+    ).toBeVisible();
+}
+
+/** Sidebar link to /data (labels are hidden while the sidebar is collapsed). */
+function dataLink(page: Page): Locator {
+    return page.locator('a[href="/data"]');
 }
 
 function accountRow(page: Page, email: string): Locator {
@@ -49,18 +62,24 @@ async function expectRowActions(
 }
 
 test.describe('login', () => {
-    test('USER lands on the aquariums and cannot open user management', async ({
+    test('USER lands on the dashboard and cannot open data management', async ({
         page,
     }) => {
         await logIn(page, USER);
-        await expect(page).toHaveURL(/\/aquariums$/);
+        await expect(
+            page.getByRole('heading', { name: 'Bienvenue User' })
+        ).toBeVisible();
+        await expect(dataLink(page)).toHaveCount(0);
 
-        await page.goto('/user');
-        await expect(page).toHaveURL(/\/aquariums$/);
+        await page.goto(USERS_PAGE);
+        await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
     });
 
     test('a wrong password shows an error', async ({ page }) => {
-        await logIn(page, ADMIN, 'wrong-password');
+        await openLoginPage(page);
+        await page.getByLabel('E-mail').fill(ADMIN);
+        await page.getByLabel('Mot de passe').fill('wrong-password');
+        await page.getByRole('button', { name: 'Se connecter' }).click();
 
         await expect(
             page.getByText('E-mail ou mot de passe invalide.')
@@ -71,8 +90,10 @@ test.describe('login', () => {
     test('a visitor who is not logged in is sent to the login page', async ({
         page,
     }) => {
-        await page.goto('/user');
+        await page.goto(USERS_PAGE);
+        await expect(page).toHaveURL(/\/login$/);
 
+        await page.goto('/');
         await expect(page).toHaveURL(/\/login$/);
     });
 
@@ -85,19 +106,19 @@ test.describe('login', () => {
         await page.getByLabel('Mot de passe').fill(PASSWORD);
         await page.getByRole('button', { name: 'Créer le compte' }).click();
 
-        await expect(page).toHaveURL(/\/aquariums$/);
-        await page.goto('/user');
-        await expect(page).toHaveURL(/\/aquariums$/);
+        await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
+        await page.goto(USERS_PAGE);
+        await expect(page).toHaveURL(/127\.0\.0\.1:3100\/$/);
     });
 });
 
 test.describe('user management', () => {
-    test('ADMIN manages USER accounts only', async ({ page }) => {
+    test('ADMIN sees data management and manages USER accounts only', async ({
+        page,
+    }) => {
         await logIn(page, ADMIN);
-        await expect(page).toHaveURL(/\/user$/);
-        await expect(
-            page.getByRole('heading', { name: 'Utilisateurs' })
-        ).toBeVisible();
+        await expect(dataLink(page)).toBeVisible();
+        await openUsersPage(page);
 
         await expectRowActions(page, USER, { canEdit: true, canDelete: true });
         await expectRowActions(page, SUDO, {
@@ -112,6 +133,7 @@ test.describe('user management', () => {
 
     test('ADMIN can only give the USER role', async ({ page }) => {
         await logIn(page, ADMIN);
+        await openUsersPage(page);
         await page
             .getByRole('button', { name: 'Ajouter un utilisateur' })
             .click();
@@ -125,7 +147,7 @@ test.describe('user management', () => {
         page,
     }) => {
         await logIn(page, SUDO);
-        await expect(page).toHaveURL(/\/user$/);
+        await openUsersPage(page);
 
         await expectRowActions(page, ADMIN, { canEdit: true, canDelete: true });
         await expectRowActions(page, USER, { canEdit: true, canDelete: true });
@@ -136,8 +158,8 @@ test.describe('user management', () => {
             .click();
         await page.getByRole('dialog').getByRole('combobox').click();
         await expect(page.getByRole('option')).toHaveText([
-            'Utilisateur',
             'Administrateur',
+            'Utilisateur',
             'Super Utilisateur',
         ]);
     });

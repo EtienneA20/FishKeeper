@@ -38,7 +38,7 @@ export async function registerUser(input: RegisterInput): Promise<void> {
             email,
             departement,
             password,
-            imageURL: imageUrl || null,
+            imageURL: imageURL || null,
             role: EROLE.USER,
         },
     });
