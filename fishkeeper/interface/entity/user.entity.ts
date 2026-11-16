@@ -2,13 +2,18 @@ import { EROLE } from "@/constants/enum/role.enum";
 
 export interface IUser {
     id: string;
-    name: string;
+    name?: string | null;
     email: string;
     role: EROLE;
-    departement: string;
+    departement?: string | null;
+    imageURL?: string | null;
+
 }
 
 export interface UserState {
     user: IUser | null;
     setUser: (user: IUser | null) => void;
+    refreshSession: () => Promise<void>;
+    isDarkTheme: boolean;
+    setIsDarkTheme: (isDarkTheme: boolean) => void;
 }

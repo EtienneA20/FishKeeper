@@ -1,3 +1,3 @@
-export default function EauPage() {
+export default function materielHom() {
   return <h1>Mon matériel</h1>;
 }

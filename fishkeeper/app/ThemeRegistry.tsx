@@ -10,6 +10,27 @@ import { UserProvider } from '@/contexts/UserContext';
 import { SessionProvider } from 'next-auth/react';
 
 const theme = createTheme({
+    breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+        },
+    },
+    components: {
+        MuiContainer: {
+        styleOverrides: {
+            root: ({ theme }) => ({
+            padding: theme.spacing(2),
+            [theme.breakpoints.up('md')]: {
+                padding: theme.spacing(4),
+            },
+            }),
+        },
+        },
+    },
     palette: {
         mode: 'light',
         primary: {

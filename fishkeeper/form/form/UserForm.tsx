@@ -17,7 +17,8 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { userSchema, type UserFormValues } from '../schema/user.schema';
-import { EROLE, ROLE_LABELS } from '@/constants/enum/role.enum';
+import { useSession } from 'next-auth/react';
+import { EROLE, EROLE_LABEL, PRIVILEGED_ROLES } from '@/constants/enum/role.enum';
 
 interface UserFormProps {
     initialValues?: Partial<UserFormValues>;
@@ -34,6 +35,12 @@ export default function UserForm({
     onCancel,
     submitLabel = 'Enregistrer',
 }: UserFormProps): React.JSX.Element {
+    const { data: session } = useSession();
+    const isSudo = session?.user.role === EROLE.SUDO;
+    // Seul un SUDO peut attribuer ADMIN/SUDO ; on garde le rôle actuel affichable en édition.
+    const assignableRoles = Object.values(EROLE).filter(
+        (role) => isSudo || !PRIVILEGED_ROLES.includes(role) || role === initialValues?.role,
+    );
     const {
         register,
         handleSubmit,
@@ -48,6 +55,7 @@ export default function UserForm({
             role: initialValues?.role ?? EROLE.USER,
             departement: initialValues?.departement ?? '',
             password: initialValues?.password ?? '',
+            imageURL: initialValues?.imageURL ?? '',
         },
     });
 
@@ -58,8 +66,9 @@ export default function UserForm({
             role: initialValues?.role ?? EROLE.USER,
             departement: initialValues?.departement ?? '',
             password: initialValues?.password ?? '',
+            imageURL: initialValues?.imageURL ?? '',
         });
-    }, [initialValues?.email, initialValues?.name, initialValues?.role, initialValues?.departement, initialValues?.password, reset]);
+    }, [initialValues?.email, initialValues?.name, initialValues?.role, initialValues?.departement, initialValues?.password, initialValues?.imageURL, reset]);
 
     return (
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -98,9 +107,9 @@ export default function UserForm({
                                     field.onChange(event.target.value as EROLE)
                                 }
                             >
-                                {Object.values(EROLE).map((role, index) => (
-                                    <MenuItem key={index} value={role}>
-                                        {ROLE_LABELS[index]}
+                                {assignableRoles.map((role) => (
+                                    <MenuItem key={role} value={role}>
+                                        {EROLE_LABEL[role]}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -116,6 +125,15 @@ export default function UserForm({
                     {...register('departement')}
                     error={Boolean(errors.departement)}
                     helperText={errors.departement?.message}
+                    fullWidth
+                    disabled={isLoading}
+                />
+                <TextField
+                    label="URL de l'image"
+                    type="url"
+                    {...register('imageURL')}
+                    error={Boolean(errors.imageURL)}
+                    helperText={errors.imageURL?.message}
                     fullWidth
                     disabled={isLoading}
                 />
