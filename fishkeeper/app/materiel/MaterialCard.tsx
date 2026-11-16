@@ -8,16 +8,20 @@ import MaterialStatusBar from './MaterialStatusBar';
 
 interface MaterialCardProps {
     title: string;
-    statusSlot?: React.ReactNode;
+    statusSlotCat?: React.ReactNode;
+    statusSlotTyp?: React.ReactNode;
     status: string;
-    daysRemaining: number;
+    daysRemaining: number | null;
+    totalDays?: number | null;
 }
 
 export default function MaterialCard({
     title,
-    statusSlot,
+    statusSlotCat,
+    statusSlotTyp,
     status,
     daysRemaining,
+    totalDays,
 }: MaterialCardProps): React.JSX.Element {
     return (
         <Box
@@ -42,7 +46,7 @@ export default function MaterialCard({
                         flexShrink: 0,
                         p: 1,
                         borderRadius: 3,
-                        border: `1px solid ${'black'}`,
+                        border: `1px solid rgba(0, 0, 0, 0.1)`,
                         backgroundColor: 'card.backgroundInput',
                         color: 'darkBlueButton.background',
                     }}
@@ -60,7 +64,12 @@ export default function MaterialCard({
                         minWidth: 0,
                     }}
                 >
-                    {statusSlot}
+                    <Box sx={{
+                        display: 'flex', flexDirection: 'row', gap: 1,
+                    }}> 
+                        {statusSlotCat}
+                        {statusSlotTyp}
+                    </Box>
                     <Typography
                         variant="h6"
                         component="h2"
@@ -83,7 +92,13 @@ export default function MaterialCard({
                 </IconButton>
             </Box>
 
-            <MaterialStatusBar status={status} daysRemaining={daysRemaining} />
+            {daysRemaining !== null && (
+                <MaterialStatusBar
+                    status={status}
+                    daysRemaining={daysRemaining}
+                    totalDays={totalDays ?? undefined}
+                />
+            )}
         </Box>
     );
 }

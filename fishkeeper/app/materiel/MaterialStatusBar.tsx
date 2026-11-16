@@ -13,7 +13,7 @@ interface MaterialStatusBarProps {
 export default function MaterialStatusBar({
     status,
     daysRemaining,
-    totalDays = 90,
+    totalDays = 100,
 }: MaterialStatusBarProps): React.JSX.Element {
     const isAlert = daysRemaining < ALERT_THRESHOLD_DAYS;
     const isOverdue = daysRemaining < 0;
@@ -23,9 +23,10 @@ export default function MaterialStatusBar({
         ? `Échéance dépassée de ${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) > 1 ? 's' : ''}`
         : `Reste ~${daysRemaining} jour${daysRemaining > 1 ? 's' : ''}`;
 
-    const progress = isAlert
-        ? 100
-        : Math.min(100, Math.max(0, (daysRemaining / totalDays) * 100));
+    const progress = Math.min(
+        100,
+        Math.max(0, ((totalDays - daysRemaining) / totalDays) * 100),
+    );
 
     const dotColor = isAlert ? '#BA1A1A' : '#10B981';
     const labelColor = isAlert ? '#BA1A1A' : '#047857';
