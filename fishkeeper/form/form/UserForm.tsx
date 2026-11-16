@@ -17,7 +17,8 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { userSchema, type UserFormValues } from '../schema/user.schema';
-import { EROLE, EROLE_LABEL } from '@/constants/enum/role.enum';
+import { useSession } from 'next-auth/react';
+import { EROLE, EROLE_LABEL, PRIVILEGED_ROLES } from '@/constants/enum/role.enum';
 
 interface UserFormProps {
     initialValues?: Partial<UserFormValues>;
@@ -37,6 +38,12 @@ export default function UserForm({
     onCancel,
     submitLabel = 'Enregistrer',
 }: UserFormProps): React.JSX.Element {
+    const { data: session } = useSession();
+    const isSudo = session?.user.role === EROLE.SUDO;
+    // Seul un SUDO peut attribuer ADMIN/SUDO ; on garde le rôle actuel affichable en édition.
+    const assignableRoles = Object.values(EROLE).filter(
+        (role) => isSudo || !PRIVILEGED_ROLES.includes(role) || role === initialValues?.role,
+    );
     const {
         register,
         handleSubmit,
@@ -107,7 +114,7 @@ export default function UserForm({
                                     field.onChange(event.target.value as EROLE)
                                 }
                             >
-                                {roleOptions.map((role) => (
+                                {assignableRoles.map((role) => (
                                     <MenuItem key={role} value={role}>
                                         {EROLE_LABEL[role]}
                                     </MenuItem>

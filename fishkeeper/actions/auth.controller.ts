@@ -9,14 +9,14 @@ export interface RegisterInput {
     email: string;
     departement: string;
     password: string;
-    imageUrl: string;
+    imageURL: string;
 }
 
 export async function registerUser(input: RegisterInput): Promise<void> {
     const name = input.name.trim();
     const email = input.email.trim().toLowerCase();
     const departement = input.departement.trim();
-    const imageUrl = input.imageUrl.trim();
+    const imageURL = input.imageURL.trim();
     if (name.length < 2 || !email.includes('@') || departement.length < 2) {
         throw new Error('Les informations du compte sont invalides.');
     }

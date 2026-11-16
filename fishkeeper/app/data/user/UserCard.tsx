@@ -1,8 +1,8 @@
 'use client';
 
+import { IUser } from '@/interface/entity/user.entity';
 import { Avatar, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
 
-import type { IUser } from '../../interface/entity/user.entity';
 
 interface UserCardProps {
     user: IUser;

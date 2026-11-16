@@ -3,39 +3,58 @@
 import { hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
-
-import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
-import { EROLE } from '@/constants/enum/role.enum';
-import { IUserDto } from '@/interface/dto/user.dto';
-import { IUser } from '@/interface/entity/user.entity';
+import type { Session } from 'next-auth';
+import { hash } from 'bcryptjs';
 import {
-    assertCanManageRole,
-    assertCanManageUsers,
-    type RoleHolder,
-} from '@/lib/auth/authorization';
-import { getSessionActor } from '@/lib/auth/session';
-import prisma from '@/lib/db';
+  DATA_ADMIN_ROLES,
+  EROLE,
+  PRIVILEGED_ROLES,
+  canManageData,
+} from '@/constants/enum/role.enum';
+import { requireRole } from '@/lib/auth-guard';
 
-async function requireUserManager(): Promise<RoleHolder> {
-    const actor = await getSessionActor();
-    if (!actor) {
-        throw new Error(EERROR_MESSAGE.NOT_AUTHENTICATED);
-    }
+const FORBIDDEN_MESSAGE = "Vous n'avez pas les droits pour effectuer cette action.";
 
-    assertCanManageUsers(actor.role);
-    return actor;
+/** Champs renvoyés au client : le hash du mot de passe n'en fait jamais partie. */
+const PUBLIC_USER_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  departement: true,
+  imageURL: true,
+} as const;
+
+function revalidateUserPages(): void {
+  revalidatePath('/data/user');
+  revalidatePath('/data');
 }
 
-async function findTargetUser(id: string): Promise<RoleHolder> {
-    const target = await prisma.user.findUnique({
-        where: { id },
-        select: { id: true, role: true },
-    });
-    if (!target) {
-        throw new Error(EERROR_MESSAGE.USER_NOT_FOUND);
-    }
+function isSudo(session: Session): boolean {
+  return session.user.role === EROLE.SUDO;
+}
 
-    return { id: target.id, role: target.role as EROLE };
+/** Seul un SUDO peut attribuer un rôle ADMIN ou SUDO. */
+function assertCanAssignRole(session: Session, role: EROLE): void {
+  if (PRIVILEGED_ROLES.includes(role) && !isSudo(session)) {
+    throw new Error(FORBIDDEN_MESSAGE);
+  }
+}
+
+/** Seul un SUDO peut modifier ou supprimer un compte ADMIN ou SUDO. */
+async function assertCanManageTarget(session: Session, targetId: string): Promise<void> {
+  const target = await prisma.user.findUnique({
+    where: { id: targetId },
+    select: { role: true },
+  });
+
+  if (!target) {
+    throw new Error('Utilisateur introuvable.');
+  }
+
+  if (PRIVILEGED_ROLES.includes(target.role as EROLE) && !isSudo(session)) {
+    throw new Error(FORBIDDEN_MESSAGE);
+  }
 }
 
 async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
@@ -64,29 +83,29 @@ async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
 }
 
 export async function getUsers(): Promise<IUser[]> {
-    await requireUserManager();
-    const users = await prisma.user.findMany({
-        omit: { password: true },
-        orderBy: { name: 'asc' },
-    });
+  await requireRole(...DATA_ADMIN_ROLES);
+  const users = await prisma.user.findMany({
+    select: PUBLIC_USER_SELECT,
+    orderBy: { name: 'asc' },
+  });
 
     return users.map((user) => ({ ...user, role: user.role as EROLE }));
 }
 
 export async function getUserById(id: string): Promise<IUser | null> {
-    await requireUserManager();
-    const user = await prisma.user.findUnique({
-        where: { id },
-        omit: { password: true },
-    });
+  await requireRole(...DATA_ADMIN_ROLES);
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: PUBLIC_USER_SELECT,
+  });
 
     return user ? { ...user, role: user.role as EROLE } : null;
 }
 
 export async function createUser(userDto: IUserDto): Promise<void> {
-    const actor = await requireUserManager();
-    const dto = await validateUserDto(userDto);
-    assertCanManageRole(actor.role, dto.role);
+  const session = await requireRole(...DATA_ADMIN_ROLES);
+  const dto = await validateUserDto(userDto);
+  assertCanAssignRole(session, dto.role);
 
     if (!dto.password) {
         throw new Error('Le mot de passe est obligatoire à la création.');
@@ -96,24 +115,19 @@ export async function createUser(userDto: IUserDto): Promise<void> {
         data: { ...dto, password: await hash(dto.password, 12) },
     });
 
-    revalidatePath('/user');
+  revalidateUserPages();
 }
 
 export async function updateUser(id: string, userDto: IUserDto): Promise<void> {
-    const actor = await requireUserManager();
-    const target = await findTargetUser(id);
-    const isSelf = target.id === actor.id;
-    if (!isSelf) {
-        assertCanManageRole(actor.role, target.role);
-    }
+  const session = await requireRole(...DATA_ADMIN_ROLES);
+  const dto = await validateUserDto(userDto);
 
-    const dto = await validateUserDto(userDto);
-    if (isSelf && dto.role !== target.role) {
-        throw new Error(EERROR_MESSAGE.USER_SELF_ROLE_CHANGE);
-    }
-    if (!isSelf) {
-        assertCanManageRole(actor.role, dto.role);
-    }
+  await assertCanManageTarget(session, id);
+  assertCanAssignRole(session, dto.role);
+
+  if (id === session.user.id && !canManageData(dto.role)) {
+    throw new Error('Vous ne pouvez pas retirer vos propres droits d’administration.');
+  }
 
     const { password, ...userData } = dto;
     await prisma.user.update({
@@ -123,21 +137,20 @@ export async function updateUser(id: string, userDto: IUserDto): Promise<void> {
             : userData,
     });
 
-    revalidatePath('/user');
+  revalidateUserPages();
 }
 
 export async function deleteUser(id: string): Promise<void> {
-    const actor = await requireUserManager();
-    if (id === actor.id) {
-        throw new Error(EERROR_MESSAGE.USER_SELF_DELETE);
-    }
+  const session = await requireRole(...DATA_ADMIN_ROLES);
 
-    const target = await findTargetUser(id);
-    assertCanManageRole(actor.role, target.role);
+  if (id === session.user.id) {
+    throw new Error('Vous ne pouvez pas supprimer votre propre compte.');
+  }
 
-    await prisma.user.delete({
-        where: { id },
-    });
+  await assertCanManageTarget(session, id);
+  await prisma.user.delete({
+    where: { id },
+  });
 
-    revalidatePath('/user');
+  revalidateUserPages();
 }

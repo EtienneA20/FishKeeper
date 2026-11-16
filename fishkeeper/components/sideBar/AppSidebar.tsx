@@ -14,7 +14,10 @@ import PetsTwoToneIcon from '@mui/icons-material/PetsTwoTone';
 import ChecklistTwoToneIcon from '@mui/icons-material/ChecklistTwoTone';
 import SaveAsTwoToneIcon from '@mui/icons-material/SaveAsTwoTone';
 import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
+import { useSession } from 'next-auth/react';
+import { canManageData } from '@/constants/enum/role.enum';
 import SidebarItem from './SidebarItem';
+import Link from 'next/link';
 
 const SIDEBAR_STORAGE_KEY = 'sidebar_open';
 const SIDEBAR_CHANGE_EVENT = 'sidebar-preference-change';
@@ -25,19 +28,21 @@ const NAV_ITEMS = [
   { label: 'Faune et flore', href: '/faune', icon: <PetsTwoToneIcon /> },
   { label: 'Maintenance & Tâches', href: '/maintenance', icon: <ChecklistTwoToneIcon /> },
   { label: 'Matériel', href: '/materiel', icon: <Inventory2TwoToneIcon /> },
-  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon /> },
+  { label: 'Gestion des données', href: '/data', icon: <SaveAsTwoToneIcon />, adminOnly: true },
 ];
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (p) => p !== 'open' })<{ open: boolean }>(
   ({ theme, open }) => ({
-    width: open ? '14.5 rem' : '4.5 rem',
+    width: open ? "15.5rem ": "4.5rem",
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
     '& .MuiDrawer-paper': {
-      position: 'static', 
-      width: open ? '14.5 rem' : '4.5 rem',
-      minHeight: '100%',
+      position: 'sticky', 
+      top: '6rem',
+      width: open ? "15.5rem" : "4.5rem",
+      height: 'calc(100vh - 6rem)',
+      paddingRight: '0.5rem',
       transition: theme.transitions.create('width', {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.enteringScreen,
@@ -66,6 +71,10 @@ export default function AppSidebar() {
     () => false,
   );
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !('adminOnly' in item) || canManageData(session?.user.role),
+  );
 
   const toggleDrawer = () => {
     const nextState = !open;
@@ -83,7 +92,7 @@ export default function AppSidebar() {
 
       {/* Liste des liens */}
       <List disablePadding>
-        {NAV_ITEMS.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarItem
             key={item.href}
             label={item.label}
@@ -94,6 +103,49 @@ export default function AppSidebar() {
           />
         ))}
       </List>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          mt: 'auto',
+          p: 2,
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          fontSize: '0.75rem',
+          color: '#8fa0b5',
+        }}
+      >
+        {open ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justify: 'center',
+              alignItems: 'center',
+              gap: 1,
+              '& a': {
+                color: '#8fa0b5',
+                textDecoration: 'none',
+                transition: 'color 0.2s ease',
+                '&:hover': {
+                  color: '#ffffff',
+                },
+              },
+            }}
+          >
+            <Link href="/cgu">CGU</Link>
+            <span>•</span>
+            <Link href="/credits">Crédits</Link>
+            <span>•</span>
+            <Link href="/mentions-legales">Mentions Légales</Link>
+          </Box>
+        ) : (
+          <Box sx={{ opacity: 0.6, fontSize: '0.85rem' }}>©</Box>
+        )}
+      </Box>
     </Drawer>
   );
 }

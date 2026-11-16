@@ -13,12 +13,8 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
-import UserFormDialog from '../../form/dialog/UserFormDialog';
-import { useCrudDisclosure } from '../../hooks/useCrudDiclosure';
-import { useUserTable } from '../../hooks/table/useUserTable';
-import type { UserFormValues } from '../../form/schema/user.schema';
-import type { IUser } from '../../interface/entity/user.entity';
-import { PlusIcon } from 'lucide-react';
+
+import {  PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
 import {
@@ -28,6 +24,11 @@ import {
 	type RoleHolder,
 } from '@/lib/auth/authorization';
 import UserCard from './UserCard';
+import UserFormDialog from '@/form/dialog/UserFormDialog';
+import { UserFormValues } from '@/form/schema/user.schema';
+import { useUserTable } from '@/hooks/table/useUserTable';
+import { useCrudDisclosure } from '@/hooks/useCrudDiclosure';
+import { IUser } from '@/interface/entity/user.entity';
 
 interface UserListPageProps {
 	currentUser: RoleHolder;
@@ -120,6 +121,7 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
 			<Stack spacing={3} >
+				
 				<Stack
 					direction={{ xs: 'column', sm: 'row' }}
 					spacing={2}
