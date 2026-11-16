@@ -15,7 +15,7 @@ const equipments: IEquipment[] = [
     maintenanceInterval: 90,
     lastMaintainedAt: new Date('2026-10-02'),
     notes: "Mousses rincées dans l'eau du bac",
-    imageURL: null,
+    imageURL: 'https://img.magnific.com/photos-gratuite/gros-plan-beau-papillon-textures-interessantes-fleur-petale-orange_181624-7640.jpg',
     aquariumId: 'aquarium-1',
   },
   {
@@ -29,7 +29,7 @@ const equipments: IEquipment[] = [
     maintenanceInterval: 30,
     lastMaintainedAt: new Date('2026-10-15'),
     notes: 'Calibrer avec les solutions pH 7 et pH 4',
-    imageURL: null,
+    imageURL: 'https://picsum.photos/id/1024/600/400.jpg',
     aquariumId: 'aquarium-1',
   },
   {
@@ -43,7 +43,7 @@ const equipments: IEquipment[] = [
     maintenanceInterval: 60,
     lastMaintainedAt: new Date('2026-09-30'),
     notes: null,
-    imageURL: null,
+    imageURL: 'https://picsum.photos/id/1084/600/400.jpg',
     aquariumId: 'aquarium-2',
   },
   {
@@ -57,7 +57,7 @@ const equipments: IEquipment[] = [
     maintenanceInterval: 180,
     lastMaintainedAt: new Date('2026-07-01'),
     notes: 'Réglé sur 25 °C',
-    imageURL: null,
+    imageURL: 'https://picsum.photos/id/119/600/400.jpg',
     aquariumId: 'aquarium-1',
   },
   {
@@ -71,7 +71,7 @@ const equipments: IEquipment[] = [
     maintenanceInterval: 365,
     lastMaintainedAt: new Date('2026-02-10'),
     notes: null,
-    imageURL: null,
+    imageURL: 'https://picsum.photos/id/160/600/400.jpg',
     aquariumId: 'aquarium-1',
   },
   {

@@ -51,6 +51,7 @@ export default function MaterialGrid({
                         status={EQUIPMENT_STATUS_LABELS[equipment.status]}
                         daysRemaining={getDaysRemaining(equipment)}
                         totalDays={equipment.maintenanceInterval}
+                        imageURL={equipment.imageURL}
                         statusSlotCat={
                             <Chip
                                 size="small"

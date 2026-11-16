@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
-import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import MaterialStatusBar from './MaterialStatusBar';
+import { DEFAULT_EQUIPMENT_IMAGE_URL } from '@/constants/equipment.constant';
 
 interface MaterialCardProps {
     title: string;
@@ -13,6 +13,7 @@ interface MaterialCardProps {
     status: string;
     daysRemaining: number | null;
     totalDays?: number | null;
+    imageURL?: string | null;
 }
 
 export default function MaterialCard({
@@ -22,6 +23,7 @@ export default function MaterialCard({
     status,
     daysRemaining,
     totalDays,
+    imageURL,
 }: MaterialCardProps): React.JSX.Element {
     return (
         <Box
@@ -39,20 +41,18 @@ export default function MaterialCard({
         >
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                 <Box
+                    component="img"
+                    src={imageURL ?? DEFAULT_EQUIPMENT_IMAGE_URL}
+                    alt={title}
                     sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        width: 56,
+                        height: 56,
                         flexShrink: 0,
-                        p: 1,
+                        objectFit: 'cover',
                         borderRadius: 3,
                         border: `1px solid rgba(0, 0, 0, 0.1)`,
-                        backgroundColor: 'card.backgroundInput',
-                        color: 'darkBlueButton.background',
                     }}
-                >
-                    <CleaningServicesIcon />
-                </Box>
+                />
 
                 <Box
                     sx={{

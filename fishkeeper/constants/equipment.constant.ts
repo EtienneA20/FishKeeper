@@ -3,6 +3,9 @@ import { EEquipmentType } from '@/constants/enum/equipment-type.enum';
 
 export const ALERT_THRESHOLD_DAYS = 7;
 
+export const DEFAULT_EQUIPMENT_IMAGE_URL =
+    'https://img.icons8.com/pulsar-line/1200/image.jpg';
+
 export const EQUIPMENT_STATUS_LABELS: Record<EEquipmentStatus, string> = {
     [EEquipmentStatus.WORKING]: 'En service',
     [EEquipmentStatus.TO_MAINTAIN]: 'À entretenir',
