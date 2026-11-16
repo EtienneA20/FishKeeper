@@ -2,7 +2,11 @@ import UserListPage from './UserListPage';
 import { requireDataAdminPage } from '@/lib/auth-guard';
 
 export default async function UserPage(): Promise<React.JSX.Element> {
-    await requireDataAdminPage();
+    const session = await requireDataAdminPage();
 
-    return <UserListPage />;
+    return (
+        <UserListPage
+            currentUser={{ id: session.user.id, role: session.user.role }}
+        />
+    );
 }

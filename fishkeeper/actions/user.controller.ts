@@ -1,13 +1,13 @@
 'use server';
 
-import { IUserDto } from '@/interface/dto/user.dto';
-import { IUser } from '@/interface/entity/user.entity';
-import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
-import prisma from '@/lib/db';
+import { hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
 import type { Session } from 'next-auth';
-import { hash } from 'bcryptjs';
+import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
+import { IUserDto } from '@/interface/dto/user.dto';
+import { IUser } from '@/interface/entity/user.entity';
+import prisma from '@/lib/db';
 import {
   DATA_ADMIN_ROLES,
   EROLE,
@@ -61,18 +61,28 @@ async function assertCanManageTarget(session: Session, targetId: string): Promis
 }
 
 async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
-  const dto = Object.assign(new IUserDto(), userDto);
-  const errors = await validate(dto);
+    const dto = Object.assign(new IUserDto(), userDto);
+    if (typeof dto.email === 'string') {
+        // The login lowercases the e-mail, so stored addresses must be lowercase too.
+        dto.email = dto.email.trim().toLowerCase();
+    }
+    if (!dto.password) {
+        // The form sends '' when the field is left empty: it means "keep the current password".
+        delete dto.password;
+    }
 
-  if (errors.length > 0) {
-    const messages = errors.flatMap((error) =>
-      Object.values(error.constraints ?? {}),
-    );
+    // whitelist drops any field the DTO does not declare (id, createdAt, ...).
+    const errors = await validate(dto, { whitelist: true });
 
-    throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
-  }
+    if (errors.length > 0) {
+        const messages = errors.flatMap((error) =>
+            Object.values(error.constraints ?? {})
+        );
 
-  return dto;
+        throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
+    }
+
+    return dto;
 }
 
 export async function getUsers(): Promise<IUser[]> {
@@ -82,7 +92,7 @@ export async function getUsers(): Promise<IUser[]> {
     orderBy: { name: 'asc' },
   });
 
-  return users.map((user) => ({ ...user, role: user.role as EROLE }));
+    return users.map((user) => ({ ...user, role: user.role as EROLE }));
 }
 
 export async function getUserById(id: string): Promise<IUser | null> {
@@ -92,7 +102,7 @@ export async function getUserById(id: string): Promise<IUser | null> {
     select: PUBLIC_USER_SELECT,
   });
 
-  return user ? { ...user, role: user.role as EROLE } : null;
+    return user ? { ...user, role: user.role as EROLE } : null;
 }
 
 export async function createUser(userDto: IUserDto): Promise<void> {
@@ -100,13 +110,13 @@ export async function createUser(userDto: IUserDto): Promise<void> {
   const dto = await validateUserDto(userDto);
   assertCanAssignRole(session, dto.role);
 
-  if (!dto.password) {
-    throw new Error('Le mot de passe est obligatoire à la création.');
-  }
+    if (!dto.password) {
+        throw new Error('Le mot de passe est obligatoire à la création.');
+    }
 
-  await prisma.user.create({
-    data: { ...dto, password: await hash(dto.password, 12) },
-  });
+    await prisma.user.create({
+        data: { ...dto, password: await hash(dto.password, 12) },
+    });
 
   revalidateUserPages();
 }
@@ -122,11 +132,13 @@ export async function updateUser(id: string, userDto: IUserDto): Promise<void> {
     throw new Error('Vous ne pouvez pas retirer vos propres droits d’administration.');
   }
 
-  const { password, ...userData } = dto;
-  await prisma.user.update({
-    where: { id },
-    data: password ? { ...userData, password: await hash(password, 12) } : userData,
-  });
+    const { password, ...userData } = dto;
+    await prisma.user.update({
+        where: { id },
+        data: password
+            ? { ...userData, password: await hash(password, 12) }
+            : userData,
+    });
 
   revalidateUserPages();
 }

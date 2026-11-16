@@ -6,9 +6,11 @@ import { Avatar, Box, Button } from '@mui/material';
 interface UseUserTableProps {
     handleOpenEdit: (user: IUser) => void;
     handleDelete: (id: string) => void;
+    canEdit: (user: IUser) => boolean;
+    canDelete: (user: IUser) => boolean;
 }
 
-export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps): GridColDef<IUser>[] => [
+export const useUserTable = ({ handleOpenEdit, handleDelete, canEdit, canDelete }: UseUserTableProps): GridColDef<IUser>[] => [
   { field: 'name', headerName: 'Nom', flex: 1, minWidth: 160 },
   { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220},
   { field: 'role', headerName: 'Rôle', flex: 1, minWidth: 160 },
@@ -43,6 +45,7 @@ export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps
               <Button
                 variant="outlined"
                 size="small"
+                disabled={!canEdit(params.row)}
                 onClick={() => handleOpenEdit(params.row)}
               >
                 Modifier
@@ -51,6 +54,7 @@ export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps
                 variant="contained"
                 color="error"
                 size="small"
+                disabled={!canDelete(params.row)}
                 onClick={() => handleDelete(params.row.id)}
               >
                 Supprimer

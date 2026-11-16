@@ -22,6 +22,8 @@ import { EROLE, EROLE_LABEL, PRIVILEGED_ROLES } from '@/constants/enum/role.enum
 
 interface UserFormProps {
     initialValues?: Partial<UserFormValues>;
+    /** Roles the current user may assign; the select is locked when only one is allowed. */
+    roleOptions?: readonly EROLE[];
     isLoading?: boolean;
     onSubmit: (values: UserFormValues) => void | Promise<void>;
     onCancel: () => void;
@@ -30,6 +32,7 @@ interface UserFormProps {
 
 export default function UserForm({
     initialValues,
+    roleOptions = Object.values(EROLE),
     isLoading = false,
     onSubmit,
     onCancel,
@@ -92,7 +95,11 @@ export default function UserForm({
                     disabled={isLoading}
                 />
 
-                <FormControl fullWidth error={Boolean(errors.role)} disabled={isLoading}>
+                <FormControl
+                    fullWidth
+                    error={Boolean(errors.role)}
+                    disabled={isLoading || roleOptions.length <= 1}
+                >
                     <InputLabel id="role-select-label">Rôle</InputLabel>
                     <Controller
                         name="role"

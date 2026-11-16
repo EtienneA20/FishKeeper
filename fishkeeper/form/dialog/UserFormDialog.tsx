@@ -10,6 +10,7 @@ import type { UserFormValues } from '../schema/user.schema';
 interface UserFormDialogProps {
     open: boolean;
     data?: IUser | null;
+    roleOptions?: readonly EROLE[];
     isLoading?: boolean;
     onClose: () => void;
     onSave: (
@@ -21,6 +22,7 @@ interface UserFormDialogProps {
 export default function UserFormDialog({
     open,
     data = null,
+    roleOptions,
     isLoading = false,
     onClose,
     onSave,
@@ -55,6 +57,7 @@ export default function UserFormDialog({
                               }
                             : { role: EROLE.USER, password: '', imageURL: '' }
                     }
+                    roleOptions={roleOptions}
                     isLoading={isLoading}
                     onSubmit={handleSubmit}
                     onCancel={onClose}
