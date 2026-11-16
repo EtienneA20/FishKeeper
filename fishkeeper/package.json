@@ -16,8 +16,13 @@
         "db:migrate": "prisma migrate dev",
         "db:push": "prisma db push",
         "db:reset": "prisma migrate reset",
-        "db:studio": "prisma studio"
+        "db:studio": "prisma studio",
+        "db:seed": "prisma db seed"
     },
+    "prisma": {
+    "seed": "tsx prisma/seed.ts"
+    }
+    ,
     "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
@@ -55,7 +60,7 @@
         "husky": "^9.1.7",
         "prettier": "^3.9.6",
         "prisma": "^7.10.0",
-        "tsx": "^4.23.13",
+        "tsx": "^4.23.15",
         "typescript": "^5"
     }
 }
