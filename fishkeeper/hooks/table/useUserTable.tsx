@@ -2,16 +2,25 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 
 import type { IUser } from '../../interface/entity/user.entity';
 import { Avatar, Box, Button } from '@mui/material';
+import { EROLE_LABEL } from '@/constants/enum/role.enum';
 
 interface UseUserTableProps {
     handleOpenEdit: (user: IUser) => void;
     handleDelete: (id: string) => void;
+    canEdit: (user: IUser) => boolean;
+    canDelete: (user: IUser) => boolean;
 }
 
-export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps): GridColDef<IUser>[] => [
+export const useUserTable = ({ handleOpenEdit, handleDelete, canEdit, canDelete }: UseUserTableProps): GridColDef<IUser>[] => [
   { field: 'name', headerName: 'Nom', flex: 1, minWidth: 160 },
   { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220},
-  { field: 'role', headerName: 'Rôle', flex: 1, minWidth: 160 },
+  {
+    field: 'role',
+    headerName: 'Rôle',
+    flex: 1,
+    minWidth: 160,
+    valueFormatter: (value: IUser['role']) => EROLE_LABEL[value] ?? value,
+  },
   {
     field: 'departement',
     headerName: 'Département',
@@ -43,6 +52,7 @@ export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps
               <Button
                 variant="outlined"
                 size="small"
+                disabled={!canEdit(params.row)}
                 onClick={() => handleOpenEdit(params.row)}
               >
                 Modifier
@@ -51,6 +61,7 @@ export const useUserTable = ({ handleOpenEdit, handleDelete }: UseUserTableProps
                 variant="contained"
                 color="error"
                 size="small"
+                disabled={!canDelete(params.row)}
                 onClick={() => handleDelete(params.row.id)}
               >
                 Supprimer
