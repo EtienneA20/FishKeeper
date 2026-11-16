@@ -21,6 +21,7 @@ import {
     deleteUser,
     getUserById,
     getUsers,
+    updateProfile,
     updateUser,
 } from '@/actions/user.controller';
 
@@ -95,7 +96,10 @@ describe('access control', () => {
         ['deleteUser', () => deleteUser(user.id)],
     ] as const;
 
-    it.each(actions)('%s requires a signed-in user', async (_name, action) => {
+    it.each([
+        ...actions,
+        ['updateProfile', () => updateProfile(editForm(user, { name: 'Changed' }))],
+    ] as const)('%s requires a signed-in user', async (_name, action) => {
         await expect(action()).rejects.toThrow(NOT_AUTHENTICATED);
     });
 
@@ -107,8 +111,7 @@ describe('access control', () => {
         expect(await findAccount(user.id)).toMatchObject({ name: 'User' });
     });
 
-    // Security expectations that requireRole() does not meet yet: it trusts the role
-    // stored in the login token instead of reading the account from the database.
+    // requireRole() relit le rôle en base : le rôle du jeton de connexion n'est pas fiable.
     it('rejects a login token whose account was deleted', async () => {
         signInAs({ id: 'deleted-account', role: EROLE.SUDO });
 
@@ -224,14 +227,13 @@ describe('ADMIN', () => {
         expect(await findAccount(user.id)).toBeNull();
     });
 
-    // Expected behaviour, not implemented yet: updateUser() treats the ADMIN's own
-    // account like any other ADMIN account and refuses the change.
-    it('edits their own profile', async () => {
-        await updateUser(admin.id, editForm(admin, { name: 'Admin renamed' }));
-
-        expect(await findAccount(admin.id)).toMatchObject({
-            name: 'Admin renamed',
-        });
+    // Seul un SUDO modifie un compte ADMIN, y compris le sien :
+    // l'ADMIN passe par « Modifier le profil » (updateProfile).
+    it('cannot edit their own account from user management', async () => {
+        await expect(
+            updateUser(admin.id, editForm(admin, { name: 'Admin renamed' }))
+        ).rejects.toThrow(FORBIDDEN);
+        expect(await findAccount(admin.id)).toMatchObject({ name: 'Admin' });
     });
 
     it.each([EROLE.USER, EROLE.SUDO])(
@@ -316,6 +318,69 @@ describe('SUDO', () => {
     });
 });
 
+describe('updateProfile (« Modifier le profil »)', () => {
+    it.each([
+        ['USER', () => user],
+        ['ADMIN', () => admin],
+        ['SUDO', () => sudo],
+    ] as const)('%s edits their own profile', async (_role, getAccount) => {
+        const account = getAccount();
+        signInAs(account);
+
+        await updateProfile(
+            editForm(account, { name: 'Renamed', departement: 'Loiret' })
+        );
+
+        expect(await findAccount(account.id)).toMatchObject({
+            name: 'Renamed',
+            departement: 'Loiret',
+            role: account.role,
+            password: account.password,
+        });
+    });
+
+    it('never changes the role, whatever the form sends', async () => {
+        signInAs(user);
+
+        await updateProfile(editForm(user, { role: EROLE.SUDO }));
+
+        expect(await findAccount(user.id)).toMatchObject({ role: EROLE.USER });
+    });
+
+    it('only edits the signed-in account', async () => {
+        signInAs(user);
+
+        await updateProfile({
+            ...editForm(user, { name: 'Renamed' }),
+            id: admin.id,
+        } as IUserDto);
+
+        expect(await findAccount(user.id)).toMatchObject({ name: 'Renamed' });
+        expect(await findAccount(admin.id)).toMatchObject({ name: 'Admin' });
+    });
+
+    it('changes the password when a new one is given', async () => {
+        signInAs(user);
+
+        await updateProfile(editForm(user, { password: 'new-password-123' }));
+
+        const updated = await prisma.user.findUniqueOrThrow({
+            where: { id: user.id },
+        });
+        await expect(compare('new-password-123', updated.password)).resolves.toBe(
+            true
+        );
+    });
+
+    it("refuses an e-mail already used by another account", async () => {
+        signInAs(user);
+
+        await expect(
+            updateProfile(editForm(user, { email: admin.email }))
+        ).rejects.toThrow('Cette adresse e-mail est déjà utilisée.');
+    });
+});
+
 describe('input handling', () => {
     beforeEach(() => signInAs(sudo));
 
@@ -332,6 +397,15 @@ describe('input handling', () => {
         await expect(
             createUser(userForm({ email: 'not-an-email' }))
         ).rejects.toThrow(EERROR_MESSAGE.USER_EMAIL_INVALID);
+    });
+
+    it('refuses an e-mail already used, whatever its case', async () => {
+        await expect(
+            createUser(userForm({ email: admin.email.toUpperCase() }))
+        ).rejects.toThrow('Cette adresse e-mail est déjà utilisée.');
+        await expect(
+            updateUser(user.id, editForm(user, { email: admin.email }))
+        ).rejects.toThrow('Cette adresse e-mail est déjà utilisée.');
     });
 
     it('requires a password when creating an account', async () => {

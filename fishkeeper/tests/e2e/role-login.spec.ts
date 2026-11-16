@@ -125,8 +125,9 @@ test.describe('user management', () => {
             canEdit: false,
             canDelete: false,
         });
+        // Son propre compte ADMIN se modifie via « Modifier le profil ».
         await expectRowActions(page, ADMIN, {
-            canEdit: true,
+            canEdit: false,
             canDelete: false,
         });
     });
@@ -140,7 +141,8 @@ test.describe('user management', () => {
 
         const roleSelect = page.getByRole('dialog').getByRole('combobox');
         await expect(roleSelect).toHaveText('Utilisateur');
-        await expect(roleSelect).toBeDisabled();
+        await roleSelect.click();
+        await expect(page.getByRole('option')).toHaveText(['Utilisateur']);
     });
 
     test('SUDO manages ADMIN accounts and can give every role', async ({

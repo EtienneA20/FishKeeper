@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import {
 	Box,
 	Button,
@@ -17,24 +18,15 @@ import { DataGrid } from '@mui/x-data-grid';
 import {  PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
-import {
-	canDeleteUser,
-	canEditUser,
-	getAssignableRoles,
-	type RoleHolder,
-} from '@/lib/auth/authorization';
 import UserCard from './UserCard';
 import UserFormDialog from '@/form/dialog/UserFormDialog';
 import { UserFormValues } from '@/form/schema/user.schema';
 import { useUserTable } from '@/hooks/table/useUserTable';
 import { useCrudDisclosure } from '@/hooks/useCrudDiclosure';
 import { IUser } from '@/interface/entity/user.entity';
+import { canManageUser } from '@/constants/enum/role.enum';
 
-interface UserListPageProps {
-	currentUser: RoleHolder;
-}
-
-export default function UserListPage({ currentUser }: UserListPageProps): React.JSX.Element {
+export default function UserListPage(): React.JSX.Element {
 	const [users, setUsers] = useState<IUser[]>([]);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +36,17 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const [isModeTable, setIsModeTable] = useState<boolean>(true);
 	const isTableView = isMobile || isModeTable;
+	const { data: session } = useSession();
+	const currentUser = session?.user;
+
+	const canEdit = useCallback(
+		(user: IUser): boolean => canManageUser(currentUser?.role, user.role),
+		[currentUser?.role],
+	);
+	const canDelete = useCallback(
+		(user: IUser): boolean => user.id !== currentUser?.id && canEdit(user),
+		[currentUser?.id, canEdit],
+	);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -85,9 +88,6 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 				await createUser(values);
 			}
 			setUsers(await getUsers());
-		} catch (saveError) {
-			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
-			throw saveError;
 		} finally {
 			setIsSaving(false);
 		}
@@ -101,15 +101,10 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 			setUsers(await getUsers());
 		} catch (saveError) {
 			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
-			throw saveError;
 		} finally {
 			setIsSaving(false);
 		}
 	};
-
-	// UI hints only: the server actions enforce the same rules.
-	const canEdit = (user: IUser): boolean => canEditUser(currentUser, user);
-	const canDelete = (user: IUser): boolean => canDeleteUser(currentUser, user);
 
 	const columns = useUserTable({
 		handleOpenEdit: disclosure.openUpdate,
@@ -187,10 +182,10 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 								<UserCard
 									key={user.id}
 									user={user}
-									canEdit={canEdit(user)}
-									canDelete={canDelete(user)}
 									onEdit={disclosure.openUpdate}
 									onDelete={handleDelete}
+									canEdit={canEdit(user)}
+									canDelete={canDelete(user)}
 								/>
 							))
 						)}
@@ -201,7 +196,6 @@ export default function UserListPage({ currentUser }: UserListPageProps): React.
 			<UserFormDialog
 				open={disclosure.isOpen}
 				data={disclosure.data}
-				roleOptions={getAssignableRoles(currentUser, disclosure.data)}
 				isLoading={isSaving}
 				onClose={disclosure.onClose}
 				onSave={handleSave}

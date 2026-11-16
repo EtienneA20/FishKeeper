@@ -1,17 +1,19 @@
 'use client';
 
-import { Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Alert, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { useState } from 'react';
 
 import { EROLE } from '@/constants/enum/role.enum';
 import type { IUser } from '../../interface/entity/user.entity';
-import UserForm from '../form/UserForm';
+import UserForm, { type UserFormMode } from '../form/UserForm';
 import type { UserFormValues } from '../schema/user.schema';
 
 interface UserFormDialogProps {
     open: boolean;
     data?: IUser | null;
-    roleOptions?: readonly EROLE[];
     isLoading?: boolean;
+    /** true : l'utilisateur modifie son propre profil (rôle non modifiable). */
+    isProfile?: boolean;
     onClose: () => void;
     onSave: (
         values: UserFormValues,
@@ -19,32 +21,52 @@ interface UserFormDialogProps {
     ) => void | Promise<void>;
 }
 
+const TITLES: Record<UserFormMode, string> = {
+    create: 'Créer un utilisateur',
+    edit: 'Modifier un utilisateur',
+    profile: 'Modifier mon profil',
+};
+
 export default function UserFormDialog({
     open,
     data = null,
-    roleOptions,
     isLoading = false,
+    isProfile = false,
     onClose,
     onSave,
 }: UserFormDialogProps): React.JSX.Element {
-    const isEditing = data !== null;
+    const mode: UserFormMode = isProfile ? 'profile' : data ? 'edit' : 'create';
+    const [error, setError] = useState<string | null>(null);
+
+    const handleClose = (): void => {
+        setError(null);
+        onClose();
+    };
 
     const handleSubmit = async (values: UserFormValues): Promise<void> => {
-        await onSave(values, data);
-        onClose();
+        setError(null);
+        try {
+            await onSave(values, data);
+            handleClose();
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
+        }
     };
 
     return (
         <Dialog
             open={open}
-            onClose={isLoading ? undefined : onClose}
+            onClose={isLoading ? undefined : handleClose}
             fullWidth
             maxWidth="sm"
         >
-            <DialogTitle>
-                {isEditing ? 'Modifier un utilisateur' : 'Créer un utilisateur'}
-            </DialogTitle>
+            <DialogTitle>{TITLES[mode]}</DialogTitle>
             <DialogContent>
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
                 <UserForm
                     initialValues={
                         data
@@ -57,11 +79,11 @@ export default function UserFormDialog({
                               }
                             : { role: EROLE.USER, password: '', imageURL: '' }
                     }
-                    roleOptions={roleOptions}
                     isLoading={isLoading}
                     onSubmit={handleSubmit}
-                    onCancel={onClose}
-                    submitLabel={isEditing ? 'Modifier' : 'Créer'}
+                    onCancel={handleClose}
+                    submitLabel={mode === 'create' ? 'Créer' : 'Modifier'}
+                    mode={mode}
                 />
             </DialogContent>
         </Dialog>

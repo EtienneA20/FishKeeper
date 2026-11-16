@@ -1,24 +1,24 @@
 'use server';
 
-import { hash } from 'bcryptjs';
+import { IUserDto } from '@/interface/dto/user.dto';
+import { IUser } from '@/interface/entity/user.entity';
+import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
+import prisma from '@/lib/db';
 import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
 import type { Session } from 'next-auth';
-import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
-import { IUserDto } from '@/interface/dto/user.dto';
-import { IUser } from '@/interface/entity/user.entity';
-import prisma from '@/lib/db';
+import { hash } from 'bcryptjs';
 import {
   DATA_ADMIN_ROLES,
   EROLE,
-  PRIVILEGED_ROLES,
   canManageData,
+  canManageUser,
+  getAssignableRoles,
 } from '@/constants/enum/role.enum';
 import { requireRole } from '@/lib/auth-guard';
 
 const FORBIDDEN_MESSAGE = "Vous n'avez pas les droits pour effectuer cette action.";
 
-/** Champs renvoyés au client : le hash du mot de passe n'en fait jamais partie. */
 const PUBLIC_USER_SELECT = {
   id: true,
   name: true,
@@ -33,18 +33,12 @@ function revalidateUserPages(): void {
   revalidatePath('/data');
 }
 
-function isSudo(session: Session): boolean {
-  return session.user.role === EROLE.SUDO;
-}
-
-/** Seul un SUDO peut attribuer un rôle ADMIN ou SUDO. */
 function assertCanAssignRole(session: Session, role: EROLE): void {
-  if (PRIVILEGED_ROLES.includes(role) && !isSudo(session)) {
+  if (!getAssignableRoles(session.user.role).includes(role)) {
     throw new Error(FORBIDDEN_MESSAGE);
   }
 }
 
-/** Seul un SUDO peut modifier ou supprimer un compte ADMIN ou SUDO. */
 async function assertCanManageTarget(session: Session, targetId: string): Promise<void> {
   const target = await prisma.user.findUnique({
     where: { id: targetId },
@@ -52,37 +46,45 @@ async function assertCanManageTarget(session: Session, targetId: string): Promis
   });
 
   if (!target) {
-    throw new Error('Utilisateur introuvable.');
+    throw new Error(EERROR_MESSAGE.USER_NOT_FOUND);
   }
 
-  if (PRIVILEGED_ROLES.includes(target.role as EROLE) && !isSudo(session)) {
+  if (!canManageUser(session.user.role, target.role as EROLE)) {
     throw new Error(FORBIDDEN_MESSAGE);
   }
 }
 
+async function assertEmailAvailable(email: string, excludeId?: string): Promise<void> {
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (existing && existing.id !== excludeId) {
+    throw new Error('Cette adresse e-mail est déjà utilisée.');
+  }
+}
+
 async function validateUserDto(userDto: IUserDto): Promise<IUserDto> {
-    const dto = Object.assign(new IUserDto(), userDto);
-    if (typeof dto.email === 'string') {
-        // The login lowercases the e-mail, so stored addresses must be lowercase too.
-        dto.email = dto.email.trim().toLowerCase();
-    }
-    if (!dto.password) {
-        // The form sends '' when the field is left empty: it means "keep the current password".
-        delete dto.password;
-    }
+  const dto = Object.assign(new IUserDto(), userDto);
+  dto.name = dto.name?.trim();
+  dto.email = dto.email?.trim().toLowerCase();
+  dto.departement = dto.departement?.trim();
+  dto.imageURL = dto.imageURL?.trim();
+  if (!dto.password) dto.password = undefined;
+  if (!dto.imageURL) dto.imageURL = undefined;
+  // whitelist : ignore tout champ non déclaré dans le DTO (id, createdAt…).
+  const errors = await validate(dto, { whitelist: true });
 
-    // whitelist drops any field the DTO does not declare (id, createdAt, ...).
-    const errors = await validate(dto, { whitelist: true });
+  if (errors.length > 0) {
+    const messages = errors.flatMap((error) =>
+      Object.values(error.constraints ?? {}),
+    );
 
-    if (errors.length > 0) {
-        const messages = errors.flatMap((error) =>
-            Object.values(error.constraints ?? {})
-        );
+    throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
+  }
 
-        throw new Error(messages.join(' ') || EERROR_MESSAGE.USER_VALIDATION);
-    }
-
-    return dto;
+  return dto;
 }
 
 export async function getUsers(): Promise<IUser[]> {
@@ -92,7 +94,7 @@ export async function getUsers(): Promise<IUser[]> {
     orderBy: { name: 'asc' },
   });
 
-    return users.map((user) => ({ ...user, role: user.role as EROLE }));
+  return users.map((user) => ({ ...user, role: user.role as EROLE }));
 }
 
 export async function getUserById(id: string): Promise<IUser | null> {
@@ -102,7 +104,7 @@ export async function getUserById(id: string): Promise<IUser | null> {
     select: PUBLIC_USER_SELECT,
   });
 
-    return user ? { ...user, role: user.role as EROLE } : null;
+  return user ? { ...user, role: user.role as EROLE } : null;
 }
 
 export async function createUser(userDto: IUserDto): Promise<void> {
@@ -110,13 +112,14 @@ export async function createUser(userDto: IUserDto): Promise<void> {
   const dto = await validateUserDto(userDto);
   assertCanAssignRole(session, dto.role);
 
-    if (!dto.password) {
-        throw new Error('Le mot de passe est obligatoire à la création.');
-    }
+  if (!dto.password) {
+    throw new Error('Le mot de passe est obligatoire à la création.');
+  }
 
-    await prisma.user.create({
-        data: { ...dto, password: await hash(dto.password, 12) },
-    });
+  await assertEmailAvailable(dto.email);
+  await prisma.user.create({
+    data: { ...dto, password: await hash(dto.password, 12) },
+  });
 
   revalidateUserPages();
 }
@@ -132,13 +135,28 @@ export async function updateUser(id: string, userDto: IUserDto): Promise<void> {
     throw new Error('Vous ne pouvez pas retirer vos propres droits d’administration.');
   }
 
-    const { password, ...userData } = dto;
-    await prisma.user.update({
-        where: { id },
-        data: password
-            ? { ...userData, password: await hash(password, 12) }
-            : userData,
-    });
+  await assertEmailAvailable(dto.email, id);
+  const { password, ...userData } = dto;
+  await prisma.user.update({
+    where: { id },
+    data: password ? { ...userData, password: await hash(password, 12) } : userData,
+  });
+
+  revalidateUserPages();
+}
+
+export async function updateProfile(profileDto: Omit<IUserDto, 'role'>): Promise<void> {
+  const session = await requireRole();
+  const dto = await validateUserDto({ ...profileDto, role: session.user.role });
+  const id = session.user.id;
+
+  await assertEmailAvailable(dto.email, id);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password, role, ...userData } = dto;
+  await prisma.user.update({
+    where: { id },
+    data: password ? { ...userData, password: await hash(password, 12) } : userData,
+  });
 
   revalidateUserPages();
 }
@@ -147,7 +165,7 @@ export async function deleteUser(id: string): Promise<void> {
   const session = await requireRole(...DATA_ADMIN_ROLES);
 
   if (id === session.user.id) {
-    throw new Error('Vous ne pouvez pas supprimer votre propre compte.');
+    throw new Error(EERROR_MESSAGE.USER_SELF_DELETE);
   }
 
   await assertCanManageTarget(session, id);

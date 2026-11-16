@@ -25,3 +25,16 @@ export const PRIVILEGED_ROLES: readonly EROLE[] = [EROLE.ADMIN, EROLE.SUDO];
 export function canManageData(role?: EROLE | null): boolean {
     return role != null && DATA_ADMIN_ROLES.includes(role);
 }
+
+
+export function canManageUser(actorRole: EROLE | null | undefined, targetRole: EROLE): boolean {
+    if (actorRole === EROLE.SUDO) return true;
+    return actorRole === EROLE.ADMIN && !PRIVILEGED_ROLES.includes(targetRole);
+}
+
+/** Rôles qu'un utilisateur peut attribuer depuis la gestion des utilisateurs. */
+export function getAssignableRoles(actorRole: EROLE | null | undefined): EROLE[] {
+    if (actorRole === EROLE.SUDO) return Object.values(EROLE);
+    if (actorRole === EROLE.ADMIN) return [EROLE.USER];
+    return [];
+}
