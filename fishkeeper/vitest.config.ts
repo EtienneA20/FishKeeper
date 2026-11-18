@@ -16,5 +16,19 @@ export default defineConfig({
         setupFiles: ['tests/setup/database.ts'],
         clearMocks: true,
         restoreMocks: true,
+        coverage: {
+            provider: 'v8',
+            // Server logic only: React components are covered by the Playwright tests,
+            // which this report cannot measure.
+            include: ['actions/**/*.ts', 'lib/**/*.ts', 'auth.ts'],
+            reporter: ['text', 'text-summary', 'html'],
+            // `npm run test:coverage` fails below these percentages (CI included).
+            thresholds: {
+                lines: 75,
+                statements: 75,
+                functions: 75,
+                branches: 75,
+            },
+        },
     },
 });
