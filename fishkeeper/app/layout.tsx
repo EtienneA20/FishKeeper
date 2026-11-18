@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className} style={{ margin: 0 }}>
         <ThemeRegistry>
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f8fafc' }}>
             <AppHeader />
 
             <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0 }}>

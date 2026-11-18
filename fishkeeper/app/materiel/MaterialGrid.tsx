@@ -43,7 +43,7 @@ export default function MaterialGrid({
         : equipments;
 
     return (
-        <Grid container spacing={3} sx={{ mt: 4 }}>
+        <Grid container spacing={6} sx={{ mt: 6 }}>
             {filteredEquipments.map((equipment) => (
                 <Grid key={equipment.id} size={{ xs: 12, md: 6, lg: 4 }}>
                     <MaterialCard
@@ -52,6 +52,27 @@ export default function MaterialGrid({
                         daysRemaining={getDaysRemaining(equipment)}
                         totalDays={equipment.maintenanceInterval}
                         imageURL={equipment.imageURL}
+                        details={[
+                            {
+                                label: 'Modèle',
+                                value:
+                                    [equipment.brand, equipment.model]
+                                        .filter(Boolean)
+                                        .join(' ') || '—',
+                            },
+                            {
+                                label: 'Aquarium',
+                                value: equipment.aquariumId,
+                            },
+                            {
+                                label: 'Intervale de maintenance',
+                                value: String(equipment.maintenanceInterval),
+                            },
+                            {
+                                label: 'Dernière maintenance effectué',
+                                value: String(equipment.lastMaintainedAt == null ? "" : equipment.lastMaintainedAt.toLocaleDateString("fr-FR")),
+                            },
+                        ]}
                         statusSlotCat={
                             <Chip
                                 size="small"
@@ -80,6 +101,7 @@ export default function MaterialGrid({
                                 }}
                             />
                         }
+                        notes={equipment.notes}
                     />
                 </Grid>
             ))}

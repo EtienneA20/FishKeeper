@@ -14,6 +14,13 @@ interface MaterialCardProps {
     daysRemaining: number | null;
     totalDays?: number | null;
     imageURL?: string | null;
+    details?: MaterialCardDetail[];
+    notes?: string | null;
+}
+
+export interface MaterialCardDetail {
+    label: string;
+    value: string;
 }
 
 export default function MaterialCard({
@@ -24,6 +31,8 @@ export default function MaterialCard({
     daysRemaining,
     totalDays,
     imageURL,
+    details = [],
+    notes,
 }: MaterialCardProps): React.JSX.Element {
     return (
         <Box
@@ -99,6 +108,80 @@ export default function MaterialCard({
                     totalDays={totalDays ?? undefined}
                 />
             )}
+
+            {details.length > 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', px: 1 }}>
+                    {details.map((detail, index) => (
+                        <Box
+                            key={detail.label}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 2,
+                                py: 1,
+                                borderTop: index === 0 ? 'none' : '1px solid',
+                                borderColor: 'card.borderColor',
+                            }}
+                        >
+                            <Typography
+                                variant="body2"
+                                sx={{ color: 'card.colorText' }}
+                            >
+                                {detail.label}
+                            </Typography>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: 'card.colorTitle',
+                                    fontWeight: 500,
+                                    textAlign: 'right',
+                                }}
+                            >
+                                {detail.value}
+                            </Typography>
+                        </Box>
+                    ))}
+                </Box>
+            )}
+            <Box
+                sx={{
+                    p: 1.5, 
+                    display: 'flex', 
+                    flexDirection: 'row', 
+                    gap: 1.5,
+                    alignItems: 'center',
+
+                }}
+            >
+                <Typography
+                        variant="body2"
+                        sx={{ color: 'card.colorText' }}
+                >
+                    Notes
+                </Typography>
+                <Box
+                    sx={{
+                        p: 1.5,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flexGrow: '1',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        backgroundColor: '#EFF4FF',
+                        border: '1px solid',
+                        borderColor: '#E5EAF5',
+                        borderRadius: 2,
+                    }}
+                    >
+                    <Typography
+                        variant="body2"
+                        sx={{ color: 'card.colorText' }}
+                    >
+                        {notes == null ? "Aucune note enregistrée" : notes}
+                    </Typography>
+                </Box>
+            </Box>
         </Box>
     );
 }
