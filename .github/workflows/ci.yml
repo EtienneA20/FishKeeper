@@ -68,10 +68,21 @@ jobs:
       - run: npm ci
       # The tests import the generated Prisma client and apply the SQL migrations.
       - run: npx prisma generate
-      - run: npm test
+      # Runs every test and fails if server coverage drops below 75 % (vitest.config.ts).
+      - run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: fishkeeper/coverage/
+          retention-days: 7
 
   e2e:
     name: Tests E2E (Playwright)
+    # The slowest jobs only start once the quick checks pass, to save CI minutes.
+    needs: [lint, types]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -99,6 +110,7 @@ jobs:
 
   build:
     name: Build
+    needs: [lint, types]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
