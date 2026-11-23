@@ -1,8 +1,8 @@
 # Fiche de Traçabilité & Extraction des Données — FishKeeper
 
-**Date de génération :** 18/11/2026 à 18:12  
+**Date de génération :** 23/11/2026 à 17:56  
 **Fichier final prêt pour Prisma :** `data/05_final_seed.json`  
-**Volume total :** **35731 espèces** réparties dans **625 catégories taxonomiques distinctes**.
+**Volume total :** **35731 espèces** réparties dans **625 catégories taxonomiques distinctes**, avec **3622 paires d'incompatibilité** entre catégories.
 
 ---
 
@@ -26,7 +26,7 @@ Chaque étape du pipeline a généré un fichier intermédiaire immuable afin de
 | :--- | :---: | :---: | :---: |
 | `name` | 35731 | 0 | **100.0 %** |
 | `scientificName` | 35731 | 0 | **100.0 %** |
-| `categoryName` | 35731 | 0 | **100.0 %** |
+| `categoryNames` | 35731 | 0 | **100.0 %** |
 | `description` | 33683 | 2048 | **94.27 %** |
 | `imageURL` | 22512 | 13219 | **63.0 %** |
 | `waterType` | 35731 | 0 | **100.0 %** |
@@ -73,16 +73,18 @@ Chaque étape du pipeline a généré un fichier intermédiaire immuable afin de
 - **coverage_temp_ph_gh_kh :** `100% (0 null)`
 
 ### Étape 4 — `04_enrich_behavior_volume.py`
-- **Horodatage :** `2026-11-18T18:11:06.884681`
+- **Horodatage :** `2026-11-23T17:56:41.620304`
 - **Sources :** FishBase v24.07 (fooditems.parquet, ecology.parquet), Modèle d'allométrie aquariophile (taille adulte, zone de nage DemersPelag, niveau trophique)
 - **total_species :** `35731`
 - **aggressiveness_distribution :** `{'PEACEFUL': 26748, 'SEMI_AGGRESSIVE': 1618, 'AGGRESSIVE': 3935, 'TERRITORIAL': 3430}`
-- **category_incompatibility_rules :** `11`
+- **category_incompatibility_rules :** `209`
+- **category_incompatibility_pairs :** `3622`
 - **coverage_behavior_and_volume :** `100% (0 null)`
 
 ### Étape 5 — `05_validate_and_report.py`
-- **Horodatage :** `2026-11-18T18:12:40.023822`
+- **Horodatage :** `2026-11-23T17:56:43.234295`
 - **Sources :** Assertions d'intégrité Prisma (schema_2.prisma), Validation des Enums TypeScript (EWaterType, EAggressiveness)
 - **final_categories :** `625`
 - **final_species :** `35731`
 - **anomalies_fixed :** `0`
+- **final_incompatibility_pairs :** `3622`

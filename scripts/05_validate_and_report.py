@@ -56,10 +56,15 @@ def main():
     for sp in sorted(raw_species, key=lambda s: s["name"].lower()):
         name = str(sp["name"]).strip()
         sci_name = str(sp["scientificName"]).strip() if sp.get("scientificName") else None
-        cat_name = str(sp["categoryName"]).strip()
+        # Une espèce peut appartenir à plusieurs catégories (relation many-to-many Prisma)
+        raw_cat_names = sp.get("categoryNames") or [sp["categoryName"]]
+        cat_names = list(dict.fromkeys(str(c).strip() for c in raw_cat_names if str(c).strip()))
 
-        if cat_name not in valid_cat_set:
-            raise ValueError(f"Catégorie introuvable pour l'espèce {name} : {cat_name}")
+        if not cat_names:
+            raise ValueError(f"Aucune catégorie pour l'espèce {name}")
+        for cat_name in cat_names:
+            if cat_name not in valid_cat_set:
+                raise ValueError(f"Catégorie introuvable pour l'espèce {name} : {cat_name}")
 
         # Sécurité @unique Prisma
         if name.lower() in seen_sp_names:
@@ -91,7 +96,7 @@ def main():
         clean_species.append({
             "name": name,
             "scientificName": sci_name,
-            "categoryName": cat_name,
+            "categoryNames": cat_names,
             "description": str(sp["description"]).strip() if sp.get("description") else None,
             "imageURL": str(sp["imageURL"]).strip() if sp.get("imageURL") else None,
             "waterType": wt,
@@ -107,16 +112,27 @@ def main():
             "aggressiveness": agg
         })
 
-    # Nettoyage des règles d'incompatibilité
-    clean_incompatibilities = []
+    # Nettoyage des règles d'incompatibilité.
+    # La relation est symétrique : chaque paire est normalisée (nom le plus petit en source)
+    # pour n'être stockée qu'une fois, et toutes les règles d'une même source sont fusionnées
+    # (le seed fait un `set` par règle : deux règles pour une même source s'écraseraient).
+    incompatibility_pairs = set()
     for inc in raw_incompatibilities:
-        if inc["categoryName"] in valid_cat_set:
-            targets = [t for t in inc.get("incompatibleWith", []) if t in valid_cat_set]
-            if targets:
-                clean_incompatibilities.append({
-                    "categoryName": inc["categoryName"],
-                    "incompatibleWith": sorted(list(set(targets)))
-                })
+        source = inc["categoryName"]
+        if source not in valid_cat_set:
+            continue
+        for target in inc.get("incompatibleWith", []):
+            if target in valid_cat_set and target != source:
+                incompatibility_pairs.add((min(source, target), max(source, target)))
+
+    targets_by_source = {}
+    for source, target in sorted(incompatibility_pairs):
+        targets_by_source.setdefault(source, []).append(target)
+
+    clean_incompatibilities = [
+        {"categoryName": source, "incompatibleWith": targets}
+        for source, targets in targets_by_source.items()
+    ]
 
     final_payload = {
         "metadata": {
@@ -124,7 +140,8 @@ def main():
             "generatedAt": datetime.now().isoformat(),
             "totalCategories": len(clean_categories),
             "totalSpecies": len(clean_species),
-            "totalIncompatibilityRules": len(clean_incompatibilities)
+            "totalIncompatibilityRules": len(clean_incompatibilities),
+            "totalIncompatibilityPairs": len(incompatibility_pairs)
         },
         "categories": clean_categories,
         "categoryIncompatibilities": clean_incompatibilities,
@@ -138,13 +155,13 @@ def main():
     # 3. Calcul des taux de complétion finaux par colonne
     total = len(clean_species)
     fields_to_audit = [
-        "name", "scientificName", "categoryName", "description", "imageURL",
+        "name", "scientificName", "categoryNames", "description", "imageURL",
         "waterType", "minTemperature", "maxTemperature", "minPh", "maxPh",
         "minGh", "maxGh", "minKh", "maxKh", "minVolume", "aggressiveness"
     ]
     completeness = {}
     for field in fields_to_audit:
-        filled = sum(1 for s in clean_species if s.get(field) is not None and s.get(field) != "")
+        filled = sum(1 for s in clean_species if s.get(field) not in (None, "", []))
         completeness[field] = {
             "filled": filled,
             "nulls": total - filled,
@@ -155,6 +172,8 @@ def main():
     with open("data/pipeline_log.json", "r", encoding="utf-8") as f:
         logs = json.load(f)
 
+    # Une ré-exécution remplace l'entrée précédente de l'étape au lieu de la dupliquer
+    logs = [entry for entry in logs if entry["step"] != 5]
     logs.append({
         "step": 5,
         "script": "05_validate_and_report.py",
@@ -167,6 +186,7 @@ def main():
             "final_categories": len(clean_categories),
             "final_species": len(clean_species),
             "anomalies_fixed": anomalies_fixed,
+            "final_incompatibility_pairs": len(incompatibility_pairs),
             "field_completeness": completeness
         }
     })
@@ -180,7 +200,7 @@ def main():
         "",
         f"**Date de génération :** {datetime.now().strftime('%d/%m/%Y à %H:%M')}  ",
         f"**Fichier final prêt pour Prisma :** `{final_json_path}`  ",
-        f"**Volume total :** **{len(clean_species)} espèces** réparties dans **{len(clean_categories)} catégories taxonomiques distinctes**.",
+        f"**Volume total :** **{len(clean_species)} espèces** réparties dans **{len(clean_categories)} catégories taxonomiques distinctes**, avec **{len(incompatibility_pairs)} paires d'incompatibilité** entre catégories.",
         "",
         "---",
         "",
