@@ -135,8 +135,7 @@ model Species {
   id             String          @id @default(uuid())
   name           String          @unique
   scientificName String?
-  category       SpeciesCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  categoryId     String
+  categories     SpeciesCategory[]
   description    String?
   imageURL       String?
 
@@ -153,8 +152,6 @@ model Species {
   aggressiveness String?
 
   aquariumLinks AquariumPopulation[]
-
-  @@index([categoryId])
 }
 
 model SpeciesCategory {
