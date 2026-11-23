@@ -2,15 +2,16 @@ import bcrypt from 'bcryptjs';
 import type { PrismaClient } from '../../generated/prisma/client';
 
 export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
-    console.log('🧪 Création des données de test (Utilisateur, Aquariums, Équipements, Consommables)...');
+    console.log('🧪 Création des utilisateurs fictifs et des données de test...');
 
-    // 1. Utilisateur de test (mot de passe : Test1234!)
     const hashedPassword = await bcrypt.hash('Test1234!', 10);
+
+    // 1. Utilisateur fictif principal (Rôle USER)
     const demoUser = await prisma.user.upsert({
         where: { email: 'demo@fishkeeper.fr' },
         update: {},
         create: {
-            name: 'Aquariophile Démo',
+            name: 'Lucas Martin',
             email: 'demo@fishkeeper.fr',
             password: hashedPassword,
             role: 'USER',
@@ -18,127 +19,211 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
         },
     });
 
-    // Vérifier si l'aquarium de test existe déjà pour éviter les doublons
-    const existingAquarium = await prisma.aquarium.findFirst({
-        where: {
-            ownerId: demoUser.id,
-            name: 'Bac Amazonien 240L',
+    // 2. Utilisateur fictif administrateur (Rôle ADMIN)
+    await prisma.user.upsert({
+        where: { email: 'admin@fishkeeper.fr' },
+        update: {},
+        create: {
+            name: 'Admin FishKeeper',
+            email: 'admin@fishkeeper.fr',
+            password: hashedPassword,
+            role: 'ADMIN',
+            departement: '45',
         },
     });
 
-    if (existingAquarium) {
-        console.log('   → Les données de test existent déjà pour demo@fishkeeper.fr.');
-        return;
-    }
-
-    // 2. Création de l'Aquarium 1 : Eau douce tropicale
-    const amazonianTank = await prisma.aquarium.create({
-        data: {
-            name: 'Bac Amazonien 240L',
+    // 3. Création des deux aquariums ciblés par tes équipements ('aquarium-1' et 'aquarium-2')
+    const aquarium1 = await prisma.aquarium.upsert({
+        where: { id: 'aquarium-1' },
+        update: {},
+        create: {
+            id: 'aquarium-1',
+            name: 'Bac Principal Amazonien 240L',
             grossVolume: 240,
             netVolume: 205,
             waterType: 'FRESH_SOFT',
             biotope: 'Amazonien planté',
             cycle: 'CYCLED',
-            startedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // Lancé il y a 90 jours
+            startedAt: new Date('2025-01-05'),
             dimension: JSON.stringify({ length: 120, width: 40, height: 50 }),
             ownerId: demoUser.id,
         },
     });
 
-    // 3. Équipements du Bac Amazonien
-    await prisma.equipment.createMany({
-        data: [
-            {
-                name: 'Filtre externe CristalProfi e902',
-                type: 'FILTER',
-                brand: 'JBL',
-                model: 'e902 Greenline',
-                status: 'WORKING',
-                purchasedAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000),
-                maintenanceInterval: 30,
-                lastMaintainedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
-                notes: 'Rinçage des mousses bleues à l’eau du bac uniquement.',
-                aquariumId: amazonianTank.id,
-            },
-            {
-                name: 'Chauffage Thermocontrol 200W',
-                type: 'HEATER',
-                brand: 'Eheim',
-                model: '3617',
-                status: 'WORKING',
-                purchasedAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 100),
-                maintenanceInterval: 180,
-                lastMaintainedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-                notes: 'Réglé sur 25°C.',
-                aquariumId: amazonianTank.id,
-            },
-            {
-                name: 'Rampe LED Plant 3.0',
-                type: 'LIGHTING',
-                brand: 'Fluval',
-                model: 'Plant Spectrum 46W',
-                status: 'WORKING',
-                purchasedAt: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000),
-                maintenanceInterval: 60,
-                lastMaintainedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-                notes: 'Photopériode programmée de 11h00 à 19h30.',
-                aquariumId: amazonianTank.id,
-            },
-            {
-                name: 'Kit CO2 Pressurisé ProFlora',
-                type: 'CO2_SYSTEM',
-                brand: 'JBL',
-                model: 'm502',
-                status: 'NEEDS_MAINTENANCE',
-                purchasedAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
-                maintenanceInterval: 45,
-                lastMaintainedAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000),
-                notes: 'Pression bouteille à surveiller, diffuseur à nettoyer.',
-                aquariumId: amazonianTank.id,
-            },
-        ],
+    const aquarium2 = await prisma.aquarium.upsert({
+        where: { id: 'aquarium-2' },
+        update: {},
+        create: {
+            id: 'aquarium-2',
+            name: 'Nurserie 60L',
+            grossVolume: 60,
+            netVolume: 52,
+            waterType: 'FRESH_SOFT',
+            biotope: 'Bac de grossissement / nurserie',
+            cycle: 'CYCLED',
+            startedAt: new Date('2024-09-01'),
+            dimension: JSON.stringify({ length: 60, width: 30, height: 35 }),
+            ownerId: demoUser.id,
+        },
     });
 
-    // 4. Consommables associés
-    await prisma.consumable.createMany({
-        data: [
-            {
-                name: 'Conditionneur d’eau Biotopol',
-                type: 'WATER_CONDITIONER',
-                brand: 'JBL',
-                quantity: 350,
-                unit: 'ml',
-                purchasedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-                notes: '10 ml pour 40 L d’eau neuve.',
-                aquariumId: amazonianTank.id,
-            },
-            {
-                name: 'Granulés Nano / Petits Characidés',
-                type: 'FOOD',
-                brand: 'Hikari',
-                quantity: 80,
-                unit: 'g',
-                purchasedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-                expiresAt: new Date(Date.now() + 240 * 24 * 60 * 60 * 1000),
-                notes: 'Distribution 1 fois par jour, jeûne le dimanche.',
-                aquariumId: amazonianTank.id,
-            },
-            {
-                name: 'Recharge Tests Gouttes NO2 / NO3',
-                type: 'TEST_KIT',
-                brand: 'JBL',
-                quantity: 1,
-                unit: 'boîte',
-                purchasedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
-                expiresAt: new Date(Date.now() + 300 * 24 * 60 * 60 * 1000),
-                aquariumId: amazonianTank.id,
-            },
-        ],
+    // 4. Équipements prioritaires (tes 7 équipements exacts avec upsert sur l'id)
+    const priorityEquipments = [
+        {
+            id: '1',
+            name: 'Filtre principal',
+            type: 'FILTER_CANISTER',
+            brand: 'Eheim',
+            model: 'Professionel 4+ 600',
+            status: 'WORKING',
+            purchasedAt: new Date('2025-03-12'),
+            maintenanceInterval: 90,
+            lastMaintainedAt: new Date('2026-10-02'),
+            notes: "Mousses rincées dans l'eau du bac",
+            imageURL:
+                'https://img.magnific.com/photos-gratuite/gros-plan-beau-papillon-textures-interessantes-fleur-petale-orange_181624-7640.jpg',
+            aquariumId: aquarium1.id,
+        },
+        {
+            id: '2',
+            name: 'Sonde pH du bac',
+            type: 'PROBE_PH',
+            brand: 'Seneye',
+            model: 'Home',
+            status: 'TO_MAINTAIN',
+            purchasedAt: new Date('2025-06-01'),
+            maintenanceInterval: 30,
+            lastMaintainedAt: new Date('2026-10-15'),
+            notes: 'Calibrer avec les solutions pH 7 et pH 4',
+            imageURL: 'https://picsum.photos/id/1024/600/400.jpg',
+            aquariumId: aquarium1.id,
+        },
+        {
+            id: '3',
+            name: 'Filtre de la nurserie',
+            type: 'FILTER_INTERNAL',
+            brand: 'JBL',
+            model: 'CristalProfi i200',
+            status: 'WORKING',
+            purchasedAt: new Date('2024-11-20'),
+            maintenanceInterval: 60,
+            lastMaintainedAt: new Date('2026-09-30'),
+            notes: null,
+            imageURL: 'https://picsum.photos/id/1084/600/400.jpg',
+            aquariumId: aquarium2.id,
+        },
+        {
+            id: '4',
+            name: 'Chauffage principal',
+            type: 'HEATER',
+            brand: 'Eheim',
+            model: 'Jäger 150W',
+            status: 'WORKING',
+            purchasedAt: new Date('2025-01-08'),
+            maintenanceInterval: 180,
+            lastMaintainedAt: new Date('2026-07-01'),
+            notes: 'Réglé sur 25 °C',
+            imageURL: 'https://picsum.photos/id/119/600/400.jpg',
+            aquariumId: aquarium1.id,
+        },
+        {
+            id: '5',
+            name: 'Éclairage du bac',
+            type: 'LIGHTING_LED',
+            brand: 'Fluval',
+            model: 'Plant 3.0',
+            status: 'WORKING',
+            purchasedAt: new Date('2025-02-10'),
+            maintenanceInterval: 365,
+            lastMaintainedAt: new Date('2026-02-10'),
+            notes: null,
+            imageURL: 'https://picsum.photos/id/160/600/400.jpg',
+            aquariumId: aquarium1.id,
+        },
+        {
+            id: '6',
+            name: 'Distributeur de nourriture',
+            type: 'AUTO_FEEDER',
+            brand: 'Eheim',
+            model: 'Everyday',
+            status: 'WORKING',
+            purchasedAt: new Date('2026-01-15'),
+            maintenanceInterval: 30,
+            lastMaintainedAt: new Date('2026-10-21'),
+            notes: 'Deux distributions par jour',
+            imageURL: null,
+            aquariumId: aquarium2.id,
+        },
+        {
+            id: '7',
+            name: 'Osmolateur de la nurserie',
+            type: 'AUTO_TOP_OFF',
+            brand: 'Tunze',
+            model: 'Osmolator 3155',
+            status: 'FAULTY',
+            purchasedAt: new Date('2024-09-03'),
+            maintenanceInterval: 120,
+            lastMaintainedAt: new Date('2026-08-01'),
+            notes: 'Capteur optique encrassé',
+            imageURL: null,
+            aquariumId: aquarium2.id,
+        },
+    ];
+
+    for (const eq of priorityEquipments) {
+        await prisma.equipment.upsert({
+            where: { id: eq.id },
+            update: eq,
+            create: eq,
+        });
+    }
+    console.log(`   🔧 ${priorityEquipments.length} équipements prioritaires synchronisés.`);
+
+    // 5. Consommables associés (si non déjà présents)
+    const existingConsumable = await prisma.consumable.findFirst({
+        where: { aquariumId: aquarium1.id },
     });
 
-    // 5. Ajout d'une population réelle depuis la table Species (si déjà seedée)
+    if (!existingConsumable) {
+        await prisma.consumable.createMany({
+            data: [
+                {
+                    name: 'Conditionneur d’eau Biotopol',
+                    type: 'WATER_CONDITIONER',
+                    brand: 'JBL',
+                    quantity: 350,
+                    unit: 'ml',
+                    purchasedAt: new Date('2026-09-01'),
+                    expiresAt: new Date('2027-09-01'),
+                    notes: '10 ml pour 40 L d’eau neuve.',
+                    aquariumId: aquarium1.id,
+                },
+                {
+                    name: 'Granulés Nano / Petits Characidés',
+                    type: 'FOOD',
+                    brand: 'Hikari',
+                    quantity: 80,
+                    unit: 'g',
+                    purchasedAt: new Date('2026-10-01'),
+                    expiresAt: new Date('2027-06-01'),
+                    notes: 'Distribution 1 fois par jour, jeûne le dimanche.',
+                    aquariumId: aquarium1.id,
+                },
+                {
+                    name: 'Recharge Tests Gouttes NO2 / NO3',
+                    type: 'TEST_KIT',
+                    brand: 'JBL',
+                    quantity: 1,
+                    unit: 'boîte',
+                    purchasedAt: new Date('2026-09-15'),
+                    expiresAt: new Date('2027-08-15'),
+                    aquariumId: aquarium1.id,
+                },
+            ],
+        });
+    }
+
+    // 6. Ajout d'une population réelle depuis la table Species
     const neonTetra = await prisma.species.findFirst({
         where: { scientificName: 'Paracheirodon innesi' },
     });
@@ -147,97 +232,82 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
     });
 
     if (neonTetra) {
-        await prisma.aquariumPopulation.create({
-            data: {
+        await prisma.aquariumPopulation.upsert({
+            where: {
+                aquariumId_speciesId: {
+                    aquariumId: aquarium1.id,
+                    speciesId: neonTetra.id,
+                },
+            },
+            update: {},
+            create: {
                 name: 'Banc de 15 Néons',
                 size: 3.5,
                 notes: 'Acclimatés au goutte-à-goutte, très actifs.',
-                aquariumId: amazonianTank.id,
+                aquariumId: aquarium1.id,
                 speciesId: neonTetra.id,
             },
         });
     }
 
     if (corydoras) {
-        await prisma.aquariumPopulation.create({
-            data: {
+        await prisma.aquariumPopulation.upsert({
+            where: {
+                aquariumId_speciesId: {
+                    aquariumId: aquarium1.id,
+                    speciesId: corydoras.id,
+                },
+            },
+            update: {},
+            create: {
                 name: 'Groupe de 6 Corydoras Panda',
                 size: 4.5,
                 notes: 'Fouillent le sable de Loire.',
-                aquariumId: amazonianTank.id,
+                aquariumId: aquarium1.id,
                 speciesId: corydoras.id,
             },
         });
     }
 
-    // 6. Relevés de paramètres d'eau et tâche de maintenance
-    await prisma.waterMeasurement.create({
-        data: {
-            temperature: 24.8,
-            ph: 6.6,
-            no2: 0.0,
-            no3: 10.0,
-            nh4: 0.0,
-            gh: 6.0,
-            kh: 3.0,
-            notes: 'Paramètres stables après changement d’eau hebdomadaire.',
-            aquariumId: amazonianTank.id,
-        },
+    // 7. Relevés de paramètres d'eau et tâche de maintenance
+    const existingMeasurement = await prisma.waterMeasurement.findFirst({
+        where: { aquariumId: aquarium1.id },
     });
 
-    await prisma.maintenanceTask.create({
-        data: {
-            title: 'Nettoyage pré-filtre externe',
-            type: 'EQUIPMENT_MAINTENANCE',
-            frequency: 'MONTHLY',
-            interval: 1,
-            nextDueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-            aquariumId: amazonianTank.id,
-        },
-    });
-
-    // 7. Création d'un second aquarium de test : Nano Récifal 60L
-    const nanoReef = await prisma.aquarium.create({
-        data: {
-            name: 'Nano Récifal 60L',
-            grossVolume: 60,
-            netVolume: 52,
-            waterType: 'MARINE_HARD',
-            biotope: 'Récifal Indo-Pacifique',
-            cycle: 'CYCLING',
-            startedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
-            dimension: JSON.stringify({ length: 40, width: 40, height: 40 }),
-            ownerId: demoUser.id,
-        },
-    });
-
-    await prisma.equipment.createMany({
-        data: [
-            {
-                name: 'Écumeur interne Tunze 9001',
-                type: 'SKIMMER',
-                brand: 'Tunze',
-                model: 'Comline DOC Skimmer 9001',
-                status: 'WORKING',
-                purchasedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-                maintenanceInterval: 14,
-                lastMaintainedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-                notes: 'Godet vidé tous les 4 jours.',
-                aquariumId: nanoReef.id,
+    if (!existingMeasurement) {
+        await prisma.waterMeasurement.create({
+            data: {
+                temperature: 24.8,
+                ph: 6.6,
+                no2: 0.0,
+                no3: 10.0,
+                nh4: 0.0,
+                gh: 6.0,
+                kh: 3.0,
+                notes: 'Paramètres stables après changement d’eau hebdomadaire.',
+                aquariumId: aquarium1.id,
             },
-            {
-                name: 'Pompe de brassage Nero 3',
-                type: 'PUMP',
-                brand: 'AquaIllumination',
-                model: 'Nero 3',
-                status: 'WORKING',
-                purchasedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-                maintenanceInterval: 60,
-                aquariumId: nanoReef.id,
-            },
-        ],
+        });
+    }
+
+    const existingTask = await prisma.maintenanceTask.findFirst({
+        where: { aquariumId: aquarium1.id },
     });
+
+    if (!existingTask) {
+        await prisma.maintenanceTask.create({
+            data: {
+                title: 'Calibrage sonde pH Seneye',
+                type: 'EQUIPMENT_MAINTENANCE',
+                frequency: 'MONTHLY',
+                interval: 1,
+                nextDueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+                aquariumId: aquarium1.id,
+            },
+        });
+    }
 
     console.log('✅ Données de test créées avec succès !');
-    console.log('   👤 Compte démo : demo@fishkeeper.fr / Test1234!');
+    console.log('   👤 Compte USER  : demo@fishkeeper.fr  / Test1234!');
+    console.log('   🛡️  Compte ADMIN : admin@fishkeeper.fr / Test1234!');
 }
