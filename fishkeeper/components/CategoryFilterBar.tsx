@@ -5,7 +5,7 @@ import { Box, Typography } from '@mui/material';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 interface CategoryFilterBarProps {
-  categories: string[];
+  categories: Record<string, number>;
 }
 
 export default function CategoryFilterBar({
@@ -16,7 +16,8 @@ export default function CategoryFilterBar({
   const pathname = usePathname();
 
   const currentCategory = searchParams.get('category') || 'Tous';
-  const allTabs = ['Tous', ...categories];
+  const total = Object.values(categories).reduce((sum, count) => sum + count, 0);
+  const allTabs: [string, number][] = [['Tous', total], ...Object.entries(categories)];
 
   const handleSelect = (category: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -35,7 +36,7 @@ export default function CategoryFilterBar({
         backgroundColor: 'card.background', border: '1px solid', borderColor: 'card.borderColor', borderRadius: 4, 
         }}
     >
-      {allTabs.map((category) => {
+      {allTabs.map(([category, count]) => {
         const isSelected = currentCategory === category;
 
         return (
@@ -56,7 +57,7 @@ export default function CategoryFilterBar({
                 <Box sx={{width: 25, height: 20, borderRadius: '40%', backgroundColor: 'card.backgroundInput', ml: 1, alignItems: 'center'}}
                 >
                     <Typography sx={{fontWeight: 'bold', fontSize: 13, color: 'card.colorText'}}>
-                        3
+                        {count}
                     </Typography>
                 </Box>
 

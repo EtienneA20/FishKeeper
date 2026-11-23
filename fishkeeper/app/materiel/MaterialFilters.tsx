@@ -2,11 +2,22 @@
 
 import React from 'react';
 import CategoryFilterBar from '../../components/CategoryFilterBar';
+import { IEquipment } from '@/interface/entity/equipment.entity';
+import { EQUIPMENT_TYPES } from '@/constants/equipment.constant';
 
-export default function MaterialFilters(): React.JSX.Element {
-    return (
-    <CategoryFilterBar
-        categories={['Entretien & Nettoyage', 'Mesure & Tests', 'Quotidien & Nourrissage', "Changement d'eau"]}
-    />
-    );
+interface MaterialFiltersProps {
+    equipments: IEquipment[];
+}
+
+export default function MaterialFilters({
+    equipments,
+}: MaterialFiltersProps): React.JSX.Element {
+    const categories: Record<string, number> = {};
+
+    for (const equipment of equipments) {
+        const category = EQUIPMENT_TYPES[equipment.type].category;
+        categories[category] = (categories[category] ?? 0) + 1;
+    }
+
+    return <CategoryFilterBar categories={categories} />;
 }

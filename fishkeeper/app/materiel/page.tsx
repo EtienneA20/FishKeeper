@@ -14,7 +14,7 @@ export default function MaterialPage(): React.JSX.Element {
     <Box sx={{ m: -3, p: 6, boxSizing: 'border-box', height: 'calc(100% + 48px)', overflowY: 'auto', scrollbarGutter: 'stable', backgroundColor: 'page.background' }}>
         <MaterialHeaderCard/>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-          <MaterialFilters/>
+          <MaterialFilters equipments={equipments}/>
           <ViewModeToggle/>
         </Box>
         <MaterialGrid equipments={equipments}/>
