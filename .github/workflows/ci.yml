@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: fishkeeper
+
+env:
+  # Only used to load prisma7.config.ts and auth.ts: no job reads this database.
+  # Vitest builds its own temporary SQLite files from prisma/migrations,
+  # and Playwright uses e2e.db (see playwright.config.ts).
+  DATABASE_URL: file:./dummy.db
+  # auth.ts refuses to load without a secret (needed by `next build`).
+  NEXTAUTH_SECRET: ci-only-secret-not-used-in-production
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+
+  types:
+    name: Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
+
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+
+  test:
+    name: Tests (unit, models, integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
+
+      - run: npm ci
+      # The tests import the generated Prisma client and apply the SQL migrations.
+      - run: npx prisma generate
+      # Runs every test and fails if server coverage drops below 75 % (vitest.config.ts).
+      - run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: fishkeeper/coverage/
+          retention-days: 7
+
+  e2e:
+    name: Tests E2E (Playwright)
+    # The slowest jobs only start once the quick checks pass, to save CI minutes.
+    needs: [lint, types]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
+
+      - run: npm ci
+      # On Ubuntu the platform is detected correctly: no PLAYWRIGHT_HOST_PLATFORM_OVERRIDE needed.
+      - run: npx playwright install --with-deps chromium
+      # Starts `next dev` on port 3100 after rebuilding e2e.db (npm run test:e2e:prepare).
+      - run: npm run test:e2e
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: fishkeeper/test-results/
+          retention-days: 7
+
+  build:
+    name: Build
+    needs: [lint, types]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fishkeeper/package-lock.json
+
+      - run: npm ci
+
+      - name: Cache Next.js
+        uses: actions/cache@v4
+        with:
+          path: fishkeeper/.next/cache
+          key: nextjs-${{ hashFiles('fishkeeper/package-lock.json') }}-${{ hashFiles('fishkeeper/**/*.ts', 'fishkeeper/**/*.tsx', '!fishkeeper/node_modules/**', '!fishkeeper/.next/**') }}
+          restore-keys: nextjs-${{ hashFiles('fishkeeper/package-lock.json') }}-
+
+      # `npm run build` already runs `prisma generate`.
+      - run: npm run build
