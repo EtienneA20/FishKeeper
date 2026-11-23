@@ -311,3 +311,4 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
     console.log('   👤 Compte USER  : demo@fishkeeper.fr  / Test1234!');
     console.log('   🛡️  Compte ADMIN : admin@fishkeeper.fr / Test1234!');
 }
+ 
