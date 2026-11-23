@@ -87,7 +87,7 @@ export default function UserForm({
 
     return (
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-            <Stack spacing={2}>
+            <Stack spacing={2} sx={{ mt: 1 }}>
                 <TextField
                     label="Nom"
                     {...register('name')}
