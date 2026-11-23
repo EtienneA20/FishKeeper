@@ -21,12 +21,10 @@ export default function ErrorPage({ error, retry }: ErrorPageProps): React.JSX.E
 
     return (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Une erreur est survenue
-            </Typography>
             <Typography color="text.secondary" sx={{ mb: 3 }}>
                 Un problème inattendu s&apos;est produit. Vous pouvez réessayer ou revenir à l&apos;accueil.
             </Typography>
+            <img src="/logos/fatal_error_fishkeeper.png" />
             {error.digest && (
                 <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 3 }}>
                     Code : {error.digest}

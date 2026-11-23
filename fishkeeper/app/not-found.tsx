@@ -10,13 +10,12 @@ import Link from 'next/link';
 export default function NotFound(): React.JSX.Element {
     return (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h3" component="h1" gutterBottom>
-                404
-            </Typography>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h2" gutterBottom>
                 Page introuvable
             </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
+            <img src="/logos/error_404_fishkeeper.png" />
+
+            <Typography color="text.secondary" variant="h5" sx={{ mb: 3 }}>
                 La page que vous cherchez n&apos;existe pas ou a été déplacée.
             </Typography>
             <Button component={Link} href="/" variant="contained">
