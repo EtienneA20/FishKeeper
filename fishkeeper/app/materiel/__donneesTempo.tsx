@@ -6,7 +6,7 @@ import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
 const equipments: IEquipment[] = [
   {
     id: '1',
-    name: 'Filtre externe Eheim Professionel 4+ 600',
+    name: 'Filtre principal',
     type: EEquipmentType.FILTER_CANISTER,
     brand: 'Eheim',
     model: 'Professionel 4+ 600',
@@ -20,7 +20,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '2',
-    name: 'Sonde pH Seneye',
+    name: 'Sonde pH du bac',
     type: EEquipmentType.PROBE_PH,
     brand: 'Seneye',
     model: 'Home',
@@ -34,7 +34,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '3',
-    name: 'Filtre interne JBL CristalProfi i200',
+    name: 'Filtre de la nurserie',
     type: EEquipmentType.FILTER_INTERNAL,
     brand: 'JBL',
     model: 'CristalProfi i200',
@@ -48,7 +48,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '4',
-    name: 'Chauffage Eheim Jäger 150W',
+    name: 'Chauffage principal',
     type: EEquipmentType.HEATER,
     brand: 'Eheim',
     model: 'Jäger 150W',
@@ -62,7 +62,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '5',
-    name: 'Rampe LED Fluval Plant 3.0',
+    name: 'Éclairage du bac',
     type: EEquipmentType.LIGHTING_LED,
     brand: 'Fluval',
     model: 'Plant 3.0',
@@ -76,7 +76,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '6',
-    name: 'Distributeur automatique Eheim Everyday',
+    name: 'Distributeur de nourriture',
     type: EEquipmentType.AUTO_FEEDER,
     brand: 'Eheim',
     model: 'Everyday',
@@ -90,7 +90,7 @@ const equipments: IEquipment[] = [
   },
   {
     id: '7',
-    name: 'Osmolateur Tunze Osmolator 3155',
+    name: 'Osmolateur de la nurserie',
     type: EEquipmentType.AUTO_TOP_OFF,
     brand: 'Tunze',
     model: 'Osmolator 3155',

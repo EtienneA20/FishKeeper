@@ -5,15 +5,31 @@ import ControlPointTwoToneIcon from '@mui/icons-material/ControlPointTwoTone';
 import PageHeaderCard from '../../components/PageHeaderCard';
 import DialogButton from '../../components/DialogButton';
 import StatusChip from '../../components/StatusChip';
+import { IEquipment } from '@/interface/entity/equipment.entity';
+import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
 
-export default function MaterialHeaderCard(): React.JSX.Element {
+interface MaterialHeaderCardProps {
+    equipments: IEquipment[];
+}
+
+export default function MaterialHeaderCard({
+    equipments,
+}: MaterialHeaderCardProps): React.JSX.Element {
+    let nbOperationalEquipment = 0;
+    
+    for (const equipment of equipments) {
+        if (equipment.status === EEquipmentStatus.WORKING) {
+            nbOperationalEquipment += 1;
+        }
+    }
+
     return (
     <PageHeaderCard
         title="Matériel & Équipements"
-        description="Inventaire technique du bac, cycles et d'usure des consommables."
+        description="Inventaire technique, cycles d'entretien et usure des consommables."
         statusSlot={
             <StatusChip
-                label="Équipement opérationnels (5/6 en service)"
+                label={`Équipements opérationnels (${nbOperationalEquipment}/${equipments.length})`}
                 color="#009d8d"
                 backgroundColor="#e5f5f4"
             />

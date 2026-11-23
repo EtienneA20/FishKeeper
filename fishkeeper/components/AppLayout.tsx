@@ -33,7 +33,7 @@ export default function AppLayout({ children }: AppLayoutProps): React.JSX.Eleme
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f8fafc' }}>
             <AppHeader />
             <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0 }}>
                 <AppSidebar />

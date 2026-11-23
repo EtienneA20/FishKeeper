@@ -8,9 +8,24 @@ export const DEFAULT_EQUIPMENT_IMAGE_URL =
 
 export const EQUIPMENT_STATUS_LABELS: Record<EEquipmentStatus, string> = {
     [EEquipmentStatus.WORKING]: 'En service',
-    [EEquipmentStatus.TO_MAINTAIN]: 'À entretenir',
+    [EEquipmentStatus.TO_MAINTAIN]: 'En maintenance',
     [EEquipmentStatus.FAULTY]: 'En panne',
     [EEquipmentStatus.RETIRED]: 'Retiré',
+};
+
+interface EquipmentStatusColors {
+    color: string;
+    backgroundColor: string;
+}
+
+export const EQUIPMENT_STATUS_COLORS: Record<
+    EEquipmentStatus,
+    EquipmentStatusColors
+> = {
+    [EEquipmentStatus.WORKING]: { color: '#047857', backgroundColor: '#D1FAE5' },
+    [EEquipmentStatus.TO_MAINTAIN]: { color: '#B45309', backgroundColor: '#FEF3C7' },
+    [EEquipmentStatus.FAULTY]: { color: '#BA1A1A', backgroundColor: '#FFDAD6' },
+    [EEquipmentStatus.RETIRED]: { color: '#475569', backgroundColor: '#E2E8F0' },
 };
 
 // En BD, un équipement n'a qu'un seul type (EEquipmentType) et pas de catégorie.

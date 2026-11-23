@@ -5,7 +5,11 @@ import { Chip, Grid } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import MaterialCard from './MaterialCard';
 import { IEquipment } from '@/interface/entity/equipment.entity';
-import { EQUIPMENT_STATUS_LABELS, EQUIPMENT_TYPES } from '@/constants/equipment.constant';
+import {
+    EQUIPMENT_STATUS_COLORS,
+    EQUIPMENT_STATUS_LABELS,
+    EQUIPMENT_TYPES,
+} from '@/constants/equipment.constant';
 
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -48,7 +52,17 @@ export default function MaterialGrid({
                 <Grid key={equipment.id} size={{ xs: 12, md: 6, lg: 4 }}>
                     <MaterialCard
                         title={equipment.name}
-                        status={EQUIPMENT_STATUS_LABELS[equipment.status]}
+                        statusSlotStatus={
+                            <Chip
+                                size="small"
+                                label={EQUIPMENT_STATUS_LABELS[equipment.status]}
+                                sx={{
+                                    ...EQUIPMENT_STATUS_COLORS[equipment.status],
+                                    fontWeight: 600,
+                                    borderRadius: 1,
+                                }}
+                            />
+                        }
                         daysRemaining={getDaysRemaining(equipment)}
                         totalDays={equipment.maintenanceInterval}
                         imageURL={equipment.imageURL}
@@ -78,20 +92,6 @@ export default function MaterialGrid({
                                 size="small"
                                 label={
                                     EQUIPMENT_TYPES[equipment.type].category
-                                }
-                                sx={{
-                                    backgroundColor: 'card.backgroundInput',
-                                    color: 'card.colorText',
-                                    fontWeight: 500,
-                                    borderRadius: 1,
-                                }}
-                            />
-                        }
-                        statusSlotTyp={
-                            <Chip
-                                size="small"
-                                label={
-                                    EQUIPMENT_TYPES[equipment.type].label
                                 }
                                 sx={{
                                     backgroundColor: 'card.backgroundInput',

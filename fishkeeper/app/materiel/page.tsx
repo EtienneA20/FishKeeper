@@ -12,7 +12,7 @@ import equipments from './__donneesTempo';
 export default function MaterialPage(): React.JSX.Element {
   return (
     <Box sx={{ m: -3, p: 6, boxSizing: 'border-box', height: 'calc(100% + 48px)', overflowY: 'auto', scrollbarGutter: 'stable', backgroundColor: 'page.background' }}>
-        <MaterialHeaderCard/>
+        <MaterialHeaderCard equipments={equipments}/>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
           <MaterialFilters equipments={equipments}/>
           <ViewModeToggle/>

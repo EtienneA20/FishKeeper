@@ -10,7 +10,7 @@ interface MaterialCardProps {
     title: string;
     statusSlotCat?: React.ReactNode;
     statusSlotTyp?: React.ReactNode;
-    status: string;
+    statusSlotStatus?: React.ReactNode;
     daysRemaining: number | null;
     totalDays?: number | null;
     imageURL?: string | null;
@@ -26,8 +26,7 @@ export interface MaterialCardDetail {
 export default function MaterialCard({
     title,
     statusSlotCat,
-    statusSlotTyp,
-    status,
+    statusSlotStatus,
     daysRemaining,
     totalDays,
     imageURL,
@@ -74,10 +73,10 @@ export default function MaterialCard({
                     }}
                 >
                     <Box sx={{
-                        display: 'flex', flexDirection: 'row', gap: 1,
-                    }}> 
+                        display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 1,
+                    }}>
+                        {statusSlotStatus}
                         {statusSlotCat}
-                        {statusSlotTyp}
                     </Box>
                     <Typography
                         variant="h6"
@@ -103,7 +102,6 @@ export default function MaterialCard({
 
             {daysRemaining !== null && (
                 <MaterialStatusBar
-                    status={status}
                     daysRemaining={daysRemaining}
                     totalDays={totalDays ?? undefined}
                 />

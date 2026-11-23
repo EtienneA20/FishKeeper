@@ -5,20 +5,18 @@ import { Box, LinearProgress, Typography } from '@mui/material';
 import { ALERT_THRESHOLD_DAYS } from '@/constants/equipment.constant';
 
 interface MaterialStatusBarProps {
-    status: string;
     daysRemaining: number;
     totalDays?: number;
 }
 
 export default function MaterialStatusBar({
-    status,
     daysRemaining,
     totalDays = 100,
 }: MaterialStatusBarProps): React.JSX.Element {
     const isAlert = daysRemaining < ALERT_THRESHOLD_DAYS;
     const isOverdue = daysRemaining < 0;
 
-    const label = isAlert ? 'Fin de cycle — Contrôle requis' : status;
+    const label = isAlert ? 'Fin de cycle — Contrôle requis' : "Cycle d'entretien";
     const remainingText = isOverdue
         ? `Échéance dépassée de ${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) > 1 ? 's' : ''}`
         : `Reste ~${daysRemaining} jour${daysRemaining > 1 ? 's' : ''}`;
