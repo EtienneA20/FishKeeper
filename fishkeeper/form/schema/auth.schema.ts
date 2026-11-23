@@ -5,7 +5,7 @@ export interface AuthFormValues {
     departement: string;
     email: string;
     password: string;
-    imageUrl: string;
+    imageURL: string;
 }
 
 const emailField = yup
@@ -24,7 +24,7 @@ export const loginSchema: yup.ObjectSchema<AuthFormValues> = yup.object({
     departement: yup.string().defined(),
     email: emailField,
     password: passwordField,
-    imageUrl: yup.string().defined(),
+    imageURL: yup.string().defined(),
 });
 
 export const registerSchema: yup.ObjectSchema<AuthFormValues> = yup.object({
@@ -40,5 +40,5 @@ export const registerSchema: yup.ObjectSchema<AuthFormValues> = yup.object({
         .min(2, 'Le département doit contenir au moins 2 caractères.'),
     email: emailField,
     password: passwordField,
-    imageUrl: yup.string().defined(),
+    imageURL: yup.string().defined(),
 });

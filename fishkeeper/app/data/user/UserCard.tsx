@@ -1,16 +1,19 @@
 'use client';
 
+import { IUser } from '@/interface/entity/user.entity';
+import { EROLE_LABEL } from '@/constants/enum/role.enum';
 import { Avatar, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
 
-import type { IUser } from '../../interface/entity/user.entity';
 
 interface UserCardProps {
     user: IUser;
     onEdit: (user: IUser) => void;
     onDelete: (id: string) => void;
+    canEdit?: boolean;
+    canDelete?: boolean;
 }
 
-export default function UserCard({ user, onEdit, onDelete }: UserCardProps): React.JSX.Element {
+export default function UserCard({ user, onEdit, onDelete, canEdit = true, canDelete = true }: UserCardProps): React.JSX.Element {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -32,14 +35,14 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps): Rea
                         </Box>
                     </Stack>
                     <Stack spacing={0.5}>
-                        <Typography variant="body2">Rôle : {user.role}</Typography>
+                        <Typography variant="body2">Rôle : {EROLE_LABEL[user.role] ?? user.role}</Typography>
                         <Typography variant="body2">Département : {user.departement || 'Non renseigné'}</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1}>
-                        <Button variant="outlined" size="small" onClick={() => onEdit(user)}>
+                        <Button variant="outlined" size="small" disabled={!canEdit} onClick={() => onEdit(user)}>
                             Modifier
                         </Button>
-                        <Button variant="contained" color="error" size="small" onClick={() => onDelete(user.id)}>
+                        <Button variant="contained" color="error" size="small" disabled={!canDelete} onClick={() => onDelete(user.id)}>
                             Supprimer
                         </Button>
                     </Stack>

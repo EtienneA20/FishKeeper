@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import {
 	Box,
 	Button,
@@ -13,15 +14,17 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
-import UserFormDialog from '../../form/dialog/UserFormDialog';
-import { useCrudDisclosure } from '../../hooks/useCrudDiclosure';
-import { useUserTable } from '../../hooks/table/useUserTable';
-import type { UserFormValues } from '../../form/schema/user.schema';
-import type { IUser } from '../../interface/entity/user.entity';
-import { PlusIcon } from 'lucide-react';
+
+import {  PlusIcon } from 'lucide-react';
 import { createUser, deleteUser, getUsers, updateUser } from '@/actions/user.controller';
 import { ToogleRenderMode } from '@/components/utils/ToogleRenderMode';
 import UserCard from './UserCard';
+import UserFormDialog from '@/form/dialog/UserFormDialog';
+import { UserFormValues } from '@/form/schema/user.schema';
+import { useUserTable } from '@/hooks/table/useUserTable';
+import { useCrudDisclosure } from '@/hooks/useCrudDiclosure';
+import { IUser } from '@/interface/entity/user.entity';
+import { canManageUser } from '@/constants/enum/role.enum';
 
 export default function UserListPage(): React.JSX.Element {
 	const [users, setUsers] = useState<IUser[]>([]);
@@ -33,6 +36,17 @@ export default function UserListPage(): React.JSX.Element {
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const [isModeTable, setIsModeTable] = useState<boolean>(true);
 	const isTableView = isMobile || isModeTable;
+	const { data: session } = useSession();
+	const currentUser = session?.user;
+
+	const canEdit = useCallback(
+		(user: IUser): boolean => canManageUser(currentUser?.role, user.role),
+		[currentUser?.role],
+	);
+	const canDelete = useCallback(
+		(user: IUser): boolean => user.id !== currentUser?.id && canEdit(user),
+		[currentUser?.id, canEdit],
+	);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -74,9 +88,6 @@ export default function UserListPage(): React.JSX.Element {
 				await createUser(values);
 			}
 			setUsers(await getUsers());
-		} catch (saveError) {
-			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
-			throw saveError;
 		} finally {
 			setIsSaving(false);
 		}
@@ -90,7 +101,6 @@ export default function UserListPage(): React.JSX.Element {
 			setUsers(await getUsers());
 		} catch (saveError) {
 			setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
-			throw saveError;
 		} finally {
 			setIsSaving(false);
 		}
@@ -99,11 +109,14 @@ export default function UserListPage(): React.JSX.Element {
 	const columns = useUserTable({
 		handleOpenEdit: disclosure.openUpdate,
 		handleDelete,
+		canEdit,
+		canDelete,
 	});
 
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
 			<Stack spacing={3} >
+				
 				<Stack
 					direction={{ xs: 'column', sm: 'row' }}
 					spacing={2}
@@ -171,6 +184,8 @@ export default function UserListPage(): React.JSX.Element {
 									user={user}
 									onEdit={disclosure.openUpdate}
 									onDelete={handleDelete}
+									canEdit={canEdit(user)}
+									canDelete={canDelete(user)}
 								/>
 							))
 						)}
