@@ -20,7 +20,7 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { getUserSchema, type UserFormValues } from '../schema/user.schema';
 import { useSession } from 'next-auth/react';
-import { EROLE, EROLE_LABEL, PRIVILEGED_ROLES } from '@/constants/enum/role.enum';
+import { EROLE, EROLE_LABEL, getAssignableRoles } from '@/constants/enum/role.enum';
 
 interface UserFormProps {
     initialValues?: Partial<UserFormValues>;
@@ -28,9 +28,15 @@ interface UserFormProps {
     onSubmit: (values: UserFormValues) => void | Promise<void>;
     onCancel: () => void;
     submitLabel?: string;
-    /** En édition, le mot de passe n'est modifié que si l'utilisateur le demande. */
-    isEditing?: boolean;
+    /**
+     * - create  : création depuis /data/user (mot de passe obligatoire)
+     * - edit    : modification depuis /data/user (mot de passe facultatif)
+     * - profile : modification de son propre profil (pas de choix du rôle)
+     */
+    mode?: UserFormMode;
 }
+
+export type UserFormMode = 'create' | 'edit' | 'profile';
 
 export default function UserForm({
     initialValues,
@@ -38,14 +44,13 @@ export default function UserForm({
     onSubmit,
     onCancel,
     submitLabel = 'Enregistrer',
-    isEditing = false,
+    mode = 'create',
 }: UserFormProps): React.JSX.Element {
     const { data: session } = useSession();
-    const isSudo = session?.user.role === EROLE.SUDO;
-    // Seul un SUDO peut attribuer ADMIN/SUDO ; on garde le rôle actuel affichable en édition.
-    const assignableRoles = Object.values(EROLE).filter(
-        (role) => isSudo || !PRIVILEGED_ROLES.includes(role) || role === initialValues?.role,
-    );
+    const isEditing = mode !== 'create';
+    const showRole = mode !== 'profile';
+    // Mêmes règles que le back (getAssignableRoles) : ADMIN → USER, SUDO → tous.
+    const assignableRoles = getAssignableRoles(session?.user.role);
     const [changePassword, setChangePassword] = useState(false);
     const requirePassword = !isEditing || changePassword;
     const schema = useMemo(() => getUserSchema(requirePassword), [requirePassword]);
@@ -102,33 +107,35 @@ export default function UserForm({
                     disabled={isLoading}
                 />
 
-                <FormControl fullWidth error={Boolean(errors.role)} disabled={isLoading}>
-                    <InputLabel id="role-select-label">Rôle</InputLabel>
-                    <Controller
-                        name="role"
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                {...field}
-                                labelId="role-select-label"
-                                label="Rôle"
-                                value={field.value ?? EROLE.USER}
-                                onChange={(event) =>
-                                    field.onChange(event.target.value as EROLE)
-                                }
-                            >
-                                {assignableRoles.map((role) => (
-                                    <MenuItem key={role} value={role}>
-                                        {EROLE_LABEL[role]}
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                {showRole && (
+                    <FormControl fullWidth error={Boolean(errors.role)} disabled={isLoading}>
+                        <InputLabel id="role-select-label">Rôle</InputLabel>
+                        <Controller
+                            name="role"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    {...field}
+                                    labelId="role-select-label"
+                                    label="Rôle"
+                                    value={field.value ?? EROLE.USER}
+                                    onChange={(event) =>
+                                        field.onChange(event.target.value as EROLE)
+                                    }
+                                >
+                                    {assignableRoles.map((role) => (
+                                        <MenuItem key={role} value={role}>
+                                            {EROLE_LABEL[role]}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            )}
+                        />
+                        {errors.role && (
+                            <FormHelperText>{errors.role.message}</FormHelperText>
                         )}
-                    />
-                    {errors.role && (
-                        <FormHelperText>{errors.role.message}</FormHelperText>
-                    )}
-                </FormControl>
+                    </FormControl>
+                )}
 
                 <TextField
                     label="Département"

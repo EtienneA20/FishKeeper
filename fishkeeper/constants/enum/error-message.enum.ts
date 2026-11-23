@@ -10,4 +10,10 @@ export enum EERROR_MESSAGE {
     USER_VALIDATION = 'Les données utilisateur sont invalides.',
     USER_ROLE_REQUIRED = 'Le rôle est obligatoire.',
     USER_ROLE_INVALID = 'Le rôle est invalide.',
+    NOT_AUTHENTICATED = 'Vous devez être connecté pour effectuer cette action.',
+    USER_MANAGEMENT_FORBIDDEN = "Vous n'avez pas les droits nécessaires pour gérer les utilisateurs.",
+    USER_ROLE_FORBIDDEN = "Vous n'avez pas les droits nécessaires pour gérer un compte avec ce rôle.",
+    USER_SELF_DELETE = 'Vous ne pouvez pas supprimer votre propre compte.',
+    USER_SELF_ROLE_CHANGE = 'Vous ne pouvez pas modifier votre propre rôle.',
+    USER_NOT_FOUND = 'Utilisateur introuvable.',
 }
