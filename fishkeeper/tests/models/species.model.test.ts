@@ -95,12 +95,33 @@ describe('Species and population models (database)', () => {
         ).rejects.toMatchObject({ code: 'P2002' });
     });
 
-    it('refuses to delete a category that still has species', async () => {
-        await createTestSpecies(categoryId);
+    it('lets a species belong to several categories', async () => {
+        const other = await createTestCategory();
+        const species = await createTestSpecies([categoryId, other.id]);
+
+        const categories = await prisma.speciesCategory.findMany({
+            where: { species: { some: { id: species.id } } },
+        });
+        expect(categories.map((c) => c.id).sort()).toEqual([categoryId, other.id].sort());
+    });
+
+    it('only removes the link when a category is deleted (the species stays)', async () => {
+        const species = await createTestSpecies(categoryId);
+
+        await prisma.speciesCategory.delete({ where: { id: categoryId } });
 
         await expect(
-            prisma.speciesCategory.delete({ where: { id: categoryId } })
-        ).rejects.toMatchObject({ code: 'P2003' });
+            prisma.species.findUniqueOrThrow({
+                where: { id: species.id },
+                include: { categories: true },
+            })
+        ).resolves.toMatchObject({ categories: [] });
+    });
+
+    it('keeps the CHECK constraints on species after the cascade migration', async () => {
+        await expect(
+            createTestSpecies(categoryId, { minPh: 8, maxPh: 7 })
+        ).rejects.toThrow('CHECK constraint failed: Species_ph_order_check');
     });
 
     describe('AquariumPopulation', () => {

@@ -59,10 +59,14 @@ export async function createTestCategory(): Promise<Prisma.SpeciesCategoryModel>
 }
 
 export async function createTestSpecies(
-    categoryId: string,
+    categoryIds: string | string[],
     overrides: Partial<Prisma.SpeciesUncheckedCreateInput> = {}
 ): Promise<Prisma.SpeciesModel> {
     return prisma.species.create({
-        data: { name: `Espèce ${nextId()}`, categoryId, ...overrides },
+        data: {
+            name: `Espèce ${nextId()}`,
+            categories: { connect: [categoryIds].flat().map((id) => ({ id })) },
+            ...overrides,
+        },
     });
 }

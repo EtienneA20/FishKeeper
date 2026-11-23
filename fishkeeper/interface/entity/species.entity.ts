@@ -5,7 +5,7 @@ export interface ISpecies {
     id: string;
     name: string;
     scientificName: string | null;
-    categoryId: string;
+    categoryIds: string[];
     description: string | null;
     imageURL: string | null;
     waterType: EWaterType | null;
