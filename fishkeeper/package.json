@@ -24,7 +24,8 @@
         "db:push": "prisma db push",
         "db:reset": "prisma migrate reset",
         "db:studio": "prisma studio",
-        "db:seed": "prisma db seed"
+        "db:seed": "prisma db seed",
+        "db:seed:dev": "tsx prisma/seed.dev.ts"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
