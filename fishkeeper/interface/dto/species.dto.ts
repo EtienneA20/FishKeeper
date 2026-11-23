@@ -1,11 +1,11 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { EAggressiveness } from '@/constants/enum/aggressiveness.enum';
 import { EWaterType } from '@/constants/enum/water-type.enum';
 
 export class ISpeciesDto {
     @IsString() name!: string;
     @IsString() @IsOptional() scientificName?: string;
-    @IsString() categoryId!: string;
+    @IsArray() @ArrayNotEmpty() @IsUUID('all', { each: true }) categoryIds!: string[];
     @IsString() @IsOptional() description?: string;
     @IsString() @IsOptional() imageURL?: string;
     @IsEnum(EWaterType) @IsOptional() waterType?: EWaterType;

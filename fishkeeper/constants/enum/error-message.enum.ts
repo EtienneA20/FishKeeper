@@ -16,4 +16,11 @@ export enum EERROR_MESSAGE {
     USER_SELF_DELETE = 'Vous ne pouvez pas supprimer votre propre compte.',
     USER_SELF_ROLE_CHANGE = 'Vous ne pouvez pas modifier votre propre rôle.',
     USER_NOT_FOUND = 'Utilisateur introuvable.',
+    CATEGORY_NAME_REQUIRED = 'Le nom de la catégorie est obligatoire.',
+    CATEGORY_NAME_TOO_SHORT = 'Le nom de la catégorie doit contenir au moins 2 caractères.',
+    CATEGORY_NAME_TAKEN = 'Une catégorie porte déjà ce nom.',
+    CATEGORY_INCOMPATIBLE_INVALID = 'Les catégories incompatibles sont invalides.',
+    CATEGORY_VALIDATION = 'Les données de la catégorie sont invalides.',
+    CATEGORY_NOT_FOUND = 'Catégorie introuvable.',
+    CATEGORY_SPECIES_IN_AQUARIUM = 'Impossible de supprimer cette catégorie : certaines de ses espèces sont présentes dans un aquarium.',
 }
