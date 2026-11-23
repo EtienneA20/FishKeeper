@@ -48,3 +48,6 @@ next-env.d.ts
 
 /generated/prisma/
 *.db
+*.db-shm
+*.db-wal
+*.db-journal
