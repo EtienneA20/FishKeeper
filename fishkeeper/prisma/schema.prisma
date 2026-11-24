@@ -246,7 +246,6 @@ model Equipment {
   purchasedAt         DateTime?
   maintenanceInterval Int?      // jours
   lastMaintainedAt    DateTime?
-  lastUsedAt          DateTime?
   notes               String?
   imageURL            String?
 
