@@ -117,6 +117,15 @@ export async function getCategories(): Promise<ISpeciesCategoryDetails[]> {
     return categories.map(toCategoryDetails);
 }
 
+/** Liste légère (id + nom) pour les sélecteurs, sans le comptage des espèces. */
+export async function getCategoryOptions(): Promise<CategoryLink[]> {
+    await requireRole(...DATA_ADMIN_ROLES);
+    return prisma.speciesCategory.findMany({
+        select: CATEGORY_LINK_SELECT,
+        orderBy: { name: 'asc' },
+    });
+}
+
 export async function getCategoryById(id: string): Promise<ISpeciesCategoryDetails | null> {
     await requireRole(...DATA_ADMIN_ROLES);
     const category = await prisma.speciesCategory.findUnique({

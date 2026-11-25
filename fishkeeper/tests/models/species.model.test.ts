@@ -102,7 +102,9 @@ describe('Species and population models (database)', () => {
         const categories = await prisma.speciesCategory.findMany({
             where: { species: { some: { id: species.id } } },
         });
-        expect(categories.map((c) => c.id).sort()).toEqual([categoryId, other.id].sort());
+        expect(categories.map((c) => c.id).sort()).toEqual(
+            [categoryId, other.id].sort()
+        );
     });
 
     it('only removes the link when a category is deleted (the species stays)', async () => {
@@ -144,16 +146,19 @@ describe('Species and population models (database)', () => {
             ).rejects.toMatchObject({ code: 'P2003' });
         });
 
-        it('adds a species only once to the same aquarium', async () => {
+        it('allows several individuals of a species in the same aquarium', async () => {
+            await prisma.aquariumPopulation.create({
+                data: { aquariumId, speciesId },
+            });
             await prisma.aquariumPopulation.create({
                 data: { aquariumId, speciesId },
             });
 
-            await expect(
-                prisma.aquariumPopulation.create({
-                    data: { aquariumId, speciesId },
+            expect(
+                await prisma.aquariumPopulation.count({
+                    where: { aquariumId, speciesId },
                 })
-            ).rejects.toMatchObject({ code: 'P2002' });
+            ).toBe(2);
         });
 
         it.each([

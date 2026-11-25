@@ -9,3 +9,14 @@ export interface IAquariumPopulation {
     aquariumId: string;
     speciesId: string;
 }
+
+export interface IPopulationAquariumOption {
+    id: string;
+    name: string;
+    ownerName: string;
+}
+
+export interface IAquariumPopulationDetails extends IAquariumPopulation {
+    aquarium: IPopulationAquariumOption;
+    species: { id: string; name: string; scientificName: string | null };
+}

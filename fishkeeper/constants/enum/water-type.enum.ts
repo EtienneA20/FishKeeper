@@ -16,3 +16,22 @@ export enum EWaterType {
     HYPER_SALINE_SOFT = 'HYPER_SALINE_SOFT',
     HYPER_SALINE_HARD = 'HYPER_SALINE_HARD',
 }
+
+export const WATER_TYPE_LABEL: Record<EWaterType, string> = {
+    [EWaterType.FRESH_SOFT]: 'Eau douce – faible dureté',
+    [EWaterType.FRESH_HARD]: 'Eau douce – forte dureté',
+    [EWaterType.BRACKISH_SOFT]: 'Eau saumâtre – faible dureté',
+    [EWaterType.BRACKISH_HARD]: 'Eau saumâtre – forte dureté',
+    [EWaterType.MARINE_SOFT]: 'Eau de mer – faible dureté',
+    [EWaterType.MARINE_HARD]: 'Eau de mer – forte dureté',
+    [EWaterType.RO_SOFT]: 'Eau osmosée – faible dureté',
+    [EWaterType.RO_HARD]: 'Eau osmosée – forte dureté',
+    [EWaterType.DI_SOFT]: 'Eau déminéralisée – faible dureté',
+    [EWaterType.DI_HARD]: 'Eau déminéralisée – forte dureté',
+    [EWaterType.BLACKWATER_SOFT]: 'Eau noire – faible dureté',
+    [EWaterType.BLACKWATER_HARD]: 'Eau noire – forte dureté',
+    [EWaterType.COLD_FRESH_SOFT]: 'Eau douce froide – faible dureté',
+    [EWaterType.COLD_FRESH_HARD]: 'Eau douce froide – forte dureté',
+    [EWaterType.HYPER_SALINE_SOFT]: 'Eau hypersaline – faible dureté',
+    [EWaterType.HYPER_SALINE_HARD]: 'Eau hypersaline – forte dureté',
+};
