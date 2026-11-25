@@ -178,7 +178,9 @@ model AquariumPopulation {
   species    Species  @relation(fields: [speciesId], references: [id], onDelete: Restrict)
   speciesId  String
 
-  @@unique([aquariumId, speciesId])
+  // Un aquarium peut héberger plusieurs individus de la même espèce.
+  @@index([aquariumId])
+  @@index([speciesId])
 }
 
 // ============================================================

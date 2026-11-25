@@ -24,7 +24,7 @@ export interface ISpecies {
 
 export interface ISpeciesDetails extends ISpecies {
     categories: Pick<ISpeciesCategory, 'id' | 'name'>[];
-    /** Nombre d'aquariums où l'espèce est présente (bloque la suppression). */
+    /** Nombre d'individus de l'espèce présents en aquarium (bloque la suppression). */
     populationCount: number;
 }
 

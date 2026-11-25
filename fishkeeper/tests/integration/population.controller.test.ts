@@ -144,13 +144,8 @@ describe('createPopulation', () => {
         );
         expect(result).toEqual({ ok: true });
 
-        const created = await prisma.aquariumPopulation.findUniqueOrThrow({
-            where: {
-                aquariumId_speciesId: {
-                    aquariumId: aquarium.id,
-                    speciesId: neon.id,
-                },
-            },
+        const created = await prisma.aquariumPopulation.findFirstOrThrow({
+            where: { aquariumId: aquarium.id, speciesId: neon.id },
         });
         expect(created).toMatchObject({
             name: 'Nemo',
@@ -175,12 +170,21 @@ describe('createPopulation', () => {
         );
     });
 
-    it('refuses a species already in the aquarium', async () => {
-        await expect(
-            createPopulation(populationForm({ speciesId: guppy.id }))
-        ).resolves.toEqual(
-            failure(EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM)
-        );
+    it('accepts several individuals of the same species in one aquarium', async () => {
+        expect(
+            await createPopulation(
+                populationForm({ speciesId: guppy.id, name: 'Nemo' })
+            )
+        ).toEqual({ ok: true });
+        expect(
+            await createPopulation(populationForm({ speciesId: guppy.id }))
+        ).toEqual({ ok: true });
+
+        const guppies = await prisma.aquariumPopulation.findMany({
+            where: { aquariumId: aquarium.id, speciesId: guppy.id },
+            orderBy: { name: 'asc' },
+        });
+        expect(guppies.map((p) => p.name)).toEqual([null, 'Bubulle', 'Nemo']);
     });
 
     it('refuses an unknown aquarium or species', async () => {
@@ -247,7 +251,7 @@ describe('updatePopulation', () => {
         expect(updated.introducedAt).toEqual(existing.introducedAt);
     });
 
-    it('can move to another species when the pair is free', async () => {
+    it('can move to another species', async () => {
         expect(
             await updatePopulation(
                 existing.id,
@@ -259,15 +263,21 @@ describe('updatePopulation', () => {
         );
     });
 
-    it('refuses a pair already used by another population', async () => {
+    it('can join a species already present in the aquarium', async () => {
         const other = await prisma.aquariumPopulation.create({
             data: { aquariumId: aquarium.id, speciesId: neon.id },
         });
-        await expect(
-            updatePopulation(other.id, populationForm({ speciesId: guppy.id }))
-        ).resolves.toEqual(
-            failure(EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM)
-        );
+        expect(
+            await updatePopulation(
+                other.id,
+                populationForm({ speciesId: guppy.id })
+            )
+        ).toEqual({ ok: true });
+        expect(
+            await prisma.aquariumPopulation.count({
+                where: { aquariumId: aquarium.id, speciesId: guppy.id },
+            })
+        ).toBe(2);
     });
 
     it('refuses an unknown population', async () => {

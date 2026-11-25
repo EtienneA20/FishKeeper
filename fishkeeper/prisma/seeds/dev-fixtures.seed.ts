@@ -2,7 +2,9 @@ import bcrypt from 'bcryptjs';
 import type { PrismaClient } from '../../generated/prisma/client';
 
 export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
-    console.log('🧪 Création des utilisateurs fictifs et des données de test...');
+    console.log(
+        '🧪 Création des utilisateurs fictifs et des données de test...'
+    );
 
     const hashedPassword = await bcrypt.hash('Test1234!', 10);
 
@@ -177,7 +179,9 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
             create: eq,
         });
     }
-    console.log(`   🔧 ${priorityEquipments.length} équipements prioritaires synchronisés.`);
+    console.log(
+        `   🔧 ${priorityEquipments.length} équipements prioritaires synchronisés.`
+    );
 
     // 5. Consommables associés (si non déjà présents)
     const existingConsumable = await prisma.consumable.findFirst({
@@ -231,41 +235,45 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
         where: { scientificName: 'Corydoras panda' },
     });
 
-    if (neonTetra) {
-        await prisma.aquariumPopulation.upsert({
+    // Plusieurs individus d'une espèce peuvent partager un aquarium : le nom
+    // identifie la fixture pour que le seed reste rejouable sans doublon.
+    const ensurePopulation = async (data: {
+        name: string;
+        size: number;
+        notes: string;
+        aquariumId: string;
+        speciesId: string;
+    }): Promise<void> => {
+        const existing = await prisma.aquariumPopulation.findFirst({
             where: {
-                aquariumId_speciesId: {
-                    aquariumId: aquarium1.id,
-                    speciesId: neonTetra.id,
-                },
+                aquariumId: data.aquariumId,
+                speciesId: data.speciesId,
+                name: data.name,
             },
-            update: {},
-            create: {
-                name: 'Banc de 15 Néons',
-                size: 3.5,
-                notes: 'Acclimatés au goutte-à-goutte, très actifs.',
-                aquariumId: aquarium1.id,
-                speciesId: neonTetra.id,
-            },
+            select: { id: true },
+        });
+        if (!existing) {
+            await prisma.aquariumPopulation.create({ data });
+        }
+    };
+
+    if (neonTetra) {
+        await ensurePopulation({
+            name: 'Banc de 15 Néons',
+            size: 3.5,
+            notes: 'Acclimatés au goutte-à-goutte, très actifs.',
+            aquariumId: aquarium1.id,
+            speciesId: neonTetra.id,
         });
     }
 
     if (corydoras) {
-        await prisma.aquariumPopulation.upsert({
-            where: {
-                aquariumId_speciesId: {
-                    aquariumId: aquarium1.id,
-                    speciesId: corydoras.id,
-                },
-            },
-            update: {},
-            create: {
-                name: 'Groupe de 6 Corydoras Panda',
-                size: 4.5,
-                notes: 'Fouillent le sable de Loire.',
-                aquariumId: aquarium1.id,
-                speciesId: corydoras.id,
-            },
+        await ensurePopulation({
+            name: 'Groupe de 6 Corydoras Panda',
+            size: 4.5,
+            notes: 'Fouillent le sable de Loire.',
+            aquariumId: aquarium1.id,
+            speciesId: corydoras.id,
         });
     }
 
@@ -311,4 +319,3 @@ export async function seedDevFixtures(prisma: PrismaClient): Promise<void> {
     console.log('   👤 Compte USER  : demo@fishkeeper.fr  / Test1234!');
     console.log('   🛡️  Compte ADMIN : admin@fishkeeper.fr / Test1234!');
 }
- 

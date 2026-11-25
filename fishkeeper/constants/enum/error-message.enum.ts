@@ -43,7 +43,6 @@ export enum EERROR_MESSAGE {
     POPULATION_DATE_INVALID = "La date d'introduction est invalide.",
     POPULATION_DATE_OUT_OF_RANGE = "La date d'introduction ne peut pas être dans le futur ni avant 1900.",
     POPULATION_NUMBER_INVALID = 'La taille ou le poids est hors des limites autorisées.',
-    POPULATION_ALREADY_IN_AQUARIUM = 'Cette espèce est déjà présente dans cet aquarium.',
     POPULATION_VALIDATION = "Les données de l'individu sont invalides.",
     POPULATION_NOT_FOUND = 'Individu introuvable.',
 }

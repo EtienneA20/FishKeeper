@@ -364,15 +364,15 @@ export default function SpeciesListPage(): React.JSX.Element {
                             {toDelete.populationCount > 0 && (
                                 <>
                                     {' '}
-                                    Elle est présente dans{' '}
+                                    Elle compte encore{' '}
                                     <strong>
-                                        {toDelete.populationCount} aquarium
+                                        {toDelete.populationCount} individu
                                         {toDelete.populationCount > 1
                                             ? 's'
                                             : ''}
                                     </strong>{' '}
-                                    : la suppression sera refusée tant
-                                    qu&apos;elle y figure.
+                                    en aquarium : la suppression sera refusée
+                                    tant qu&apos;ils y figurent.
                                 </>
                             )}{' '}
                             Cette action est irréversible.

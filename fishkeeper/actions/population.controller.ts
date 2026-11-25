@@ -24,11 +24,6 @@ const POPULATION_DETAILS_INCLUDE = {
     species: { select: { id: true, name: true, scientificName: true } },
 } as const;
 
-/** Le schéma impose une seule ligne par couple (aquarium, espèce), vérifiée par la base. */
-const POPULATION_WRITE_OPTIONS = {
-    uniqueViolation: EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM,
-};
-
 interface PopulationRow {
     id: string;
     name: string | null;
@@ -185,7 +180,7 @@ export async function createPopulation(
         await prisma.aquariumPopulation.create({ data });
 
         revalidatePopulationPages();
-    }, POPULATION_WRITE_OPTIONS);
+    });
 }
 
 export async function updatePopulation(
@@ -200,7 +195,7 @@ export async function updatePopulation(
         await prisma.aquariumPopulation.update({ where: { id }, data });
 
         revalidatePopulationPages();
-    }, POPULATION_WRITE_OPTIONS);
+    });
 }
 
 export async function deletePopulation(id: string): Promise<ActionResult> {
