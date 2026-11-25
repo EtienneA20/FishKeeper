@@ -51,7 +51,7 @@
   {
     "step": 4,
     "script": "04_enrich_behavior_volume.py",
-    "timestamp": "2026-11-18T18:11:06.884681",
+    "timestamp": "2026-11-23T17:56:41.620304",
     "sources": [
       "FishBase v24.07 (fooditems.parquet, ecology.parquet)",
       "Modèle d'allométrie aquariophile (taille adulte, zone de nage DemersPelag, niveau trophique)"
@@ -64,14 +64,15 @@
         "AGGRESSIVE": 3935,
         "TERRITORIAL": 3430
       },
-      "category_incompatibility_rules": 11,
+      "category_incompatibility_rules": 209,
+      "category_incompatibility_pairs": 3622,
       "coverage_behavior_and_volume": "100% (0 null)"
     }
   },
   {
     "step": 5,
     "script": "05_validate_and_report.py",
-    "timestamp": "2026-11-18T18:12:40.023822",
+    "timestamp": "2026-11-23T17:56:43.234295",
     "sources": [
       "Assertions d'intégrité Prisma (schema_2.prisma)",
       "Validation des Enums TypeScript (EWaterType, EAggressiveness)"
@@ -80,6 +81,7 @@
       "final_categories": 625,
       "final_species": 35731,
       "anomalies_fixed": 0,
+      "final_incompatibility_pairs": 3622,
       "field_completeness": {
         "name": {
           "filled": 35731,
@@ -91,7 +93,7 @@
           "nulls": 0,
           "percent": 100.0
         },
-        "categoryName": {
+        "categoryNames": {
           "filled": 35731,
           "nulls": 0,
           "percent": 100.0

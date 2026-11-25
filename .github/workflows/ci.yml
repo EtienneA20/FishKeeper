@@ -34,6 +34,7 @@ jobs:
           cache: npm
           cache-dependency-path: fishkeeper/package-lock.json
 
+      - run: npm i -g npm@12.2.2
       - run: npm ci
       - run: npm run lint
 
@@ -49,6 +50,7 @@ jobs:
           cache: npm
           cache-dependency-path: fishkeeper/package-lock.json
 
+      - run: npm i -g npm@12.2.2
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
@@ -65,6 +67,7 @@ jobs:
           cache: npm
           cache-dependency-path: fishkeeper/package-lock.json
 
+      - run: npm i -g npm@12.2.2
       - run: npm ci
       # The tests import the generated Prisma client and apply the SQL migrations.
       - run: npx prisma generate
@@ -94,6 +97,7 @@ jobs:
           cache: npm
           cache-dependency-path: fishkeeper/package-lock.json
 
+      - run: npm i -g npm@12.2.2
       - run: npm ci
       # On Ubuntu the platform is detected correctly: no PLAYWRIGHT_HOST_PLATFORM_OVERRIDE needed.
       - run: npx playwright install --with-deps chromium
@@ -121,6 +125,7 @@ jobs:
           cache: npm
           cache-dependency-path: fishkeeper/package-lock.json
 
+      - run: npm i -g npm@12.2.2
       - run: npm ci
 
       - name: Cache Next.js

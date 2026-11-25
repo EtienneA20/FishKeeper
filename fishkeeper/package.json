@@ -2,6 +2,7 @@
     "name": "fishkeeper",
     "version": "0.1.0",
     "private": true,
+    "packageManager": "npm@12.2.2",
     "scripts": {
         "dev": "next dev",
         "build": "prisma generate && next build",
@@ -26,7 +27,6 @@
         "db:studio": "prisma studio",
         "db:seed": "prisma db seed",
         "db:seed:dev": "tsx prisma/seed.dev.ts"
-        
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
@@ -70,5 +70,13 @@
         "tsx": "^4.23.15",
         "typescript": "^5",
         "vitest": "^3.2.7"
+    },
+    "allowScripts": {
+        "@prisma/engines": true,
+        "better-sqlite3": true,
+        "esbuild": true,
+        "prisma": true,
+        "sqlite3": true,
+        "unrs-resolver": true
     }
 }
