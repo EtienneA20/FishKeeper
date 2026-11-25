@@ -26,6 +26,7 @@ import {
     deleteCategory,
     getCategories,
     getCategoryById,
+    getCategoryOptions,
     updateCategory,
 } from '@/actions/category.controller';
 
@@ -69,6 +70,7 @@ describe('access control', () => {
     const actions = [
         ['getCategories', () => getCategories()],
         ['getCategoryById', () => getCategoryById(guppy.id)],
+        ['getCategoryOptions', () => getCategoryOptions()],
         ['createCategory', () => createCategory(categoryForm())],
         ['updateCategory', () => updateCategory(guppy.id, categoryForm())],
         ['deleteCategory', () => deleteCategory(guppy.id)],
@@ -98,6 +100,13 @@ describe('getCategories', () => {
         ).toEqual([
             ['Crevettes', 1, 0],
             ['Guppys', 2, 1],
+        ]);
+    });
+
+    it('lists light options sorted by name', async () => {
+        await expect(getCategoryOptions()).resolves.toEqual([
+            { id: shrimp.id, name: 'Crevettes' },
+            { id: guppy.id, name: 'Guppys' },
         ]);
     });
 

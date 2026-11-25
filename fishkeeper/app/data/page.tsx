@@ -1,6 +1,7 @@
 import {
   Boxes,
   Fish,
+  FishSymbol,
   FlaskConical,
   Package,
   Users,
@@ -46,6 +47,14 @@ const MODULES = [
     countKey: 'speciesCategories',
   },
   {
+    title: 'Individus',
+    description: 'Suivez les individus présents dans les aquariums.',
+    href: '/data/individu',
+    icon: FishSymbol,
+    color: '#0d9488',
+    countKey: 'populations',
+  },
+  {
     title: 'Équipements',
     description: 'Gérez le matériel utilisé pour vos aquariums.',
     href: '/data/equipement',
@@ -72,6 +81,7 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
     prisma.speciesCategory.count(),
     prisma.equipment.count(),
     prisma.consumable.count(),
+    prisma.aquariumPopulation.count(),
   ]);
 
   const moduleCounts = {
@@ -81,6 +91,7 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
     speciesCategories: counts[3],
     equipment: counts[4],
     consumables: counts[5],
+    populations: counts[6],
   };
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: { xs: 2, md: 4 } }}>

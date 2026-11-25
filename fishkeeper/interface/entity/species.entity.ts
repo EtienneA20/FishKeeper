@@ -1,5 +1,6 @@
 import { EAggressiveness } from '@/constants/enum/aggressiveness.enum';
 import { EWaterType } from '@/constants/enum/water-type.enum';
+import type { ISpeciesCategory } from './species-category.entity';
 
 export interface ISpecies {
     id: string;
@@ -19,4 +20,40 @@ export interface ISpecies {
     maxKh: number | null;
     minVolume: number | null;
     aggressiveness: EAggressiveness | null;
+}
+
+export interface ISpeciesDetails extends ISpecies {
+    categories: Pick<ISpeciesCategory, 'id' | 'name'>[];
+    /** Nombre d'aquariums où l'espèce est présente (bloque la suppression). */
+    populationCount: number;
+}
+
+export type ISpeciesOption = Pick<ISpecies, 'id' | 'name' | 'scientificName'>;
+
+/** Champs sur lesquels la liste des espèces peut être triée côté serveur. */
+export const SPECIES_SORT_FIELDS = [
+    'name',
+    'scientificName',
+    'waterType',
+    'minTemperature',
+    'minPh',
+    'minGh',
+    'minKh',
+    'minVolume',
+    'aggressiveness',
+] as const;
+
+export type SpeciesSortField = (typeof SPECIES_SORT_FIELDS)[number];
+
+export interface ISpeciesQuery {
+    page: number;
+    pageSize: number;
+    search?: string;
+    sortField?: SpeciesSortField;
+    sortOrder?: 'asc' | 'desc';
+}
+
+export interface ISpeciesPage {
+    rows: ISpeciesDetails[];
+    total: number;
 }
