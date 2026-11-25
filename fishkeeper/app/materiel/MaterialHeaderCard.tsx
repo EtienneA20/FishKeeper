@@ -5,7 +5,7 @@ import ControlPointTwoToneIcon from '@mui/icons-material/ControlPointTwoTone';
 import PageHeaderCard from '../../components/PageHeaderCard';
 import DialogButton from '../../components/DialogButton';
 import StatusChip from '../../components/StatusChip';
-import AddEquipmentDialog from './AddEquipmentDialog';
+import AddEquipmentForm from './AddEquipmentForm';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { IAquarium } from '@/interface/entity/aquarium.entity';
 import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
@@ -50,7 +50,7 @@ export default function MaterialHeaderCard({
             />
         }
     />
-    <AddEquipmentDialog open={isAddOpen} onClose={() => setIsAddOpen(false)} aquariums={aquariums} />
+        <AddEquipmentForm open={isAddOpen} onClose={() => setIsAddOpen(false)} aquariums={aquariums} />
     </>
     );
 }

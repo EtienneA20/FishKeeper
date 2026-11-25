@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/auth';
@@ -27,7 +27,21 @@ export default async function MaterialPage(): Promise<React.JSX.Element> {
           <MaterialFilters equipments={equipments}/>
           <ViewModeToggle/>
         </Box>
-        <MaterialGrid equipments={equipments}/>
+        {equipments.length === 0 ? (
+          <Typography
+            variant="h4"
+            sx={{
+              textAlign: "center",
+              color: 'card.colorTitle',
+              fontWeight: 700,
+              mt: 8
+            }}
+          >
+            {"Vous ne possédez aucun matériel / équipement"}
+          </Typography>
+        ) : (
+          <MaterialGrid equipments={equipments}/>
+        )}
     </Box>
   );
 }

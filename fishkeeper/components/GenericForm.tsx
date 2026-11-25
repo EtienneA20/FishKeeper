@@ -17,6 +17,8 @@ export interface FormField {
     name: string;
     label: string;
     type: string;
+    required?: boolean;
+    defaultValueList?: string;
     options?: { value: string; label: string }[];
 }
 
@@ -87,8 +89,9 @@ export default function GenericForm({
                                     name={field.name}
                                     label={field.label}
                                     type={field.type}
+                                    required={field.required}
                                     select={Boolean(field.options)}
-                                    defaultValue={field.options?.[0]?.value}
+                                    defaultValue={field.defaultValueList ?? field.options?.[0]?.value}
                                     slotProps={{ inputLabel: { shrink: true } }}
                                     fullWidth
                                 >
