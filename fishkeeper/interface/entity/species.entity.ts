@@ -1,6 +1,7 @@
 import { EAggressiveness } from '@/constants/enum/aggressiveness.enum';
 import { EWaterType } from '@/constants/enum/water-type.enum';
 
+// interface des especes
 export interface ISpecies {
     id: string;
     name: string;
