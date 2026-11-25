@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" width="100%" height="280">
+  <defs>
+    <linearGradient id="aquaBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#04101a" />
+      <stop offset="50%" stop-color="#082032" />
+      <stop offset="100%" stop-color="#061926" />
+    </linearGradient>
+
+    <linearGradient id="rayGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="flora1" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0f766e" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.08" />
+    </linearGradient>
+
+    <linearGradient id="flora2" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0369a1" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.06" />
+    </linearGradient>
+
+    <style>
+      .title {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 48px;
+        font-weight: 800;
+        fill: #f8fafc;
+        letter-spacing: -0.5px;
+      }
+      .tagline {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 17px;
+        fill: #94a3b8;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12.5px;
+        fill: #5eead4;
+      }
+      .sway-a {
+        transform-origin: bottom center;
+        animation: swayA 6.5s ease-in-out infinite alternate;
+      }
+      .sway-b {
+        transform-origin: bottom center;
+        animation: swayB 8s ease-in-out infinite alternate;
+      }
+      .float-bubble {
+        animation: floatUp 6s linear infinite;
+      }
+      .float-bubble-d1 {
+        animation: floatUp 7.5s linear infinite;
+        animation-delay: -2.5s;
+      }
+      .float-bubble-d2 {
+        animation: floatUp 5.8s linear infinite;
+        animation-delay: -4.2s;
+      }
+
+      @keyframes swayA {
+        0% { transform: rotate(-2.2deg); }
+        100% { transform: rotate(2.5deg); }
+      }
+      @keyframes swayB {
+        0% { transform: rotate(2deg); }
+        100% { transform: rotate(-2.4deg); }
+      }
+      @keyframes floatUp {
+        0% { transform: translateY(25px); opacity: 0; }
+        20% { opacity: 0.65; }
+        80% { opacity: 0.4; }
+        100% { transform: translateY(-210px); opacity: 0; }
+      }
+    </style>
+  </defs>
+
+  <rect width="1200" height="280" rx="14" fill="url(#aquaBg)" />
+
+  
+  <polygon points="760,0 850,0 940,280 790,280" fill="url(#rayGrad)" />
+  <polygon points="900,0 970,0 1110,280 990,280" fill="url(#rayGrad)" />
+
+  
+  <g class="sway-a" style="transform-origin: 930px 280px;">
+    <path d="M930,280 C910,225 955,180 925,120 C948,165 935,220 945,280 Z" fill="url(#flora1)" />
+  </g>
+  <g class="sway-b" style="transform-origin: 980px 280px;">
+    <path d="M980,280 C965,215 1015,165 985,95 C1012,150 992,210 1002,280 Z" fill="url(#flora2)" />
+  </g>
+  <g class="sway-a" style="transform-origin: 1045px 280px;">
+    <path d="M1045,280 C1025,230 1070,185 1045,135 C1068,175 1052,225 1062,280 Z" fill="url(#flora1)" />
+  </g>
+
+  
+  <circle cx="885" cy="240" r="4.5" fill="#67e8f9" class="float-bubble" />
+  <circle cx="955" cy="250" r="3" fill="#2dd4bf" class="float-bubble-d1" />
+  <circle cx="1015" cy="235" r="5" fill="#7dd3fc" class="float-bubble-d2" />
+
+  
+  <g transform="translate(745, 42)">
+    <rect width="405" height="64" rx="10" fill="#071928" fill-opacity="0.85" stroke="#38bdf8" stroke-opacity="0.25" />
+    <text x="20" y="26" class="mono">TANKS &amp; SPECIES · NEXT.JS + PRISMA</text>
+    <text x="20" y="48" class="tagline" style="font-size: 13px; fill: #cbd5e1;">pH · GH/KH · Température · Catalogue espèces</text>
+  </g>
+
+  
+  <g transform="translate(64, 118)">
+    <text x="0" y="0" class="title">Fishkeeper</text>
+    <text x="2" y="36" class="tagline">Gestion d'aquariums, suivi des paramètres et catalogue d'espèces.</text>
+    <g transform="translate(0, 62)">
+      <rect width="214" height="28" rx="6" fill="#0d2b3e" stroke="#2dd4bf" stroke-opacity="0.35" />
+      <text x="12" y="18" class="mono">OPEN SOURCE · AQUARIOPHILIE</text>
+    </g>
+  </g>
+</svg>
