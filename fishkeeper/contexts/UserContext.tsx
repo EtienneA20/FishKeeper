@@ -1,8 +1,9 @@
 'use client';
 
+import { EROLE } from '@/constants/enum/role.enum';
 import { UserState, IUser } from '@/interface/entity/user.entity';
 import { useSession } from 'next-auth/react';
-import React, { createContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 export const UserContext = createContext<UserState | undefined>(undefined);
 
@@ -15,33 +16,40 @@ export function UserProvider({
 }: UserProviderProps): React.JSX.Element {
     const [user, setUser] = useState<IUser | null>(null);
     const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
-    const { data: session, status } = useSession();
-   
-    useEffect(() => {
-        if (status === 'authenticated' && session.user) {
-            setUser({
-                id: session.user.id,
-                name: session.user.name ?? '',
-                email: session.user.email ?? '',
-                departement: session.user.department ?? '',
-                role: session.user.role,
-            });
-            return;
-        }
+    const { data: session, status, update } = useSession();
 
-        if (status === 'unauthenticated') {
-            setUser(null);
-        }
+    const refreshSession = useCallback(async (): Promise<void> => {
+        await update();
+    }, [update]);
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            if (status === 'authenticated' && session.user) {
+                setUser({
+                    id: session.user.id,
+                    name: session.user.name ?? '',
+                    email: session.user.email ?? '',
+                    departement: session.user.departement ?? '',
+                    imageURL: session.user.imageURL ?? "",
+                    role: session.user.role as EROLE,
+                });
+                return;
+            }
+
+            if (status === 'unauthenticated') {
+                setUser(null);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
     }, [session, status]);
 
     const contextValue = useMemo(
         () => ({
             user,
             setUser,
-            isDarkTheme,
-            setIsDarkTheme,
         }),
-        [user, isDarkTheme]
+        [user]
     );
 
     return (

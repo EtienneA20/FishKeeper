@@ -1,0 +1,167 @@
+[
+  {
+    "step": 1,
+    "script": "01_extract_fishbase_base.py",
+    "timestamp": "2026-11-18T17:44:47.335221",
+    "sources": [
+      "FishBase v24.07 (species.parquet)",
+      "FishBase v24.07 (families.parquet)",
+      "FishBase v24.07 (ecology.parquet)"
+    ],
+    "stats": {
+      "total_categories": 625,
+      "total_species": 35731,
+      "with_image": 20954,
+      "with_description": 23079
+    }
+  },
+  {
+    "step": 2,
+    "script": "02_enrich_names_descriptions.py",
+    "timestamp": "2026-11-18T18:01:40.160713",
+    "sources": [
+      "FishBase v24.07 (comnames.parquet)",
+      "Wikidata SPARQL Endpoint (labels FR, descriptions FR, P18 images)"
+    ],
+    "stats": {
+      "total_species": 35731,
+      "french_names_applied": 5120,
+      "descriptions_enriched": 30509,
+      "images_added_from_wikidata": 1558,
+      "total_with_image": 22512,
+      "total_with_description": 33683
+    }
+  },
+  {
+    "step": 3,
+    "script": "03_enrich_water_params.py",
+    "timestamp": "2026-11-18T18:09:31.869458",
+    "sources": [
+      "FishBase v24.07 (species.parquet, aquarium/stocks/estimates)",
+      "Modèle biogéographique climatique & équilibre carbonaté pH/GH/KH"
+    ],
+    "stats": {
+      "total_species": 35731,
+      "exact_fishbase_temp": 3854,
+      "exact_fishbase_ph": 1890,
+      "exact_fishbase_gh": 1031,
+      "coverage_temp_ph_gh_kh": "100% (0 null)"
+    }
+  },
+  {
+    "step": 4,
+    "script": "04_enrich_behavior_volume.py",
+    "timestamp": "2026-11-18T18:11:06.884681",
+    "sources": [
+      "FishBase v24.07 (fooditems.parquet, ecology.parquet)",
+      "Modèle d'allométrie aquariophile (taille adulte, zone de nage DemersPelag, niveau trophique)"
+    ],
+    "stats": {
+      "total_species": 35731,
+      "aggressiveness_distribution": {
+        "PEACEFUL": 26748,
+        "SEMI_AGGRESSIVE": 1618,
+        "AGGRESSIVE": 3935,
+        "TERRITORIAL": 3430
+      },
+      "category_incompatibility_rules": 11,
+      "coverage_behavior_and_volume": "100% (0 null)"
+    }
+  },
+  {
+    "step": 5,
+    "script": "05_validate_and_report.py",
+    "timestamp": "2026-11-18T18:12:40.023822",
+    "sources": [
+      "Assertions d'intégrité Prisma (schema_2.prisma)",
+      "Validation des Enums TypeScript (EWaterType, EAggressiveness)"
+    ],
+    "stats": {
+      "final_categories": 625,
+      "final_species": 35731,
+      "anomalies_fixed": 0,
+      "field_completeness": {
+        "name": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "scientificName": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "categoryName": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "description": {
+          "filled": 33683,
+          "nulls": 2048,
+          "percent": 94.27
+        },
+        "imageURL": {
+          "filled": 22512,
+          "nulls": 13219,
+          "percent": 63.0
+        },
+        "waterType": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "minTemperature": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "maxTemperature": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "minPh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "maxPh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "minGh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "maxGh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "minKh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "maxKh": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "minVolume": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        },
+        "aggressiveness": {
+          "filled": 35731,
+          "nulls": 0,
+          "percent": 100.0
+        }
+      }
+    }
+  }
+]

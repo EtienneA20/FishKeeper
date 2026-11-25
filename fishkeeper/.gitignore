@@ -15,6 +15,9 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+**/.next/
 
 # next.js
 /.next/
@@ -43,6 +46,6 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma/
-
-.next/
 *.db
+*.db-shm
+*.db-wal

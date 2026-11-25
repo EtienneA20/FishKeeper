@@ -1,0 +1,6 @@
+export enum EAggressiveness {
+    PEACEFUL = 'PEACEFUL',
+    SEMI_AGGRESSIVE = 'SEMI_AGGRESSIVE',
+    AGGRESSIVE = 'AGGRESSIVE',
+    TERRITORIAL = 'TERRITORIAL',
+}

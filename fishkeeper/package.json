@@ -4,23 +4,35 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "next build",
+        "build": "prisma generate && next build",
         "start": "next start",
         "prepare": "husky",
         "debug": "NODE_OPTIONS='--inspect' next dev",
         "type-check": "tsc --noEmit",
-        "lint": "next lint",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint .",
+        "test": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:models": "vitest run tests/models",
+        "test:unit": "vitest run tests/unit tests/models",
+        "test:integration": "vitest run tests/integration",
+        "test:e2e": "playwright test",
+        "test:e2e:prepare": "prisma generate && tsx scripts/seed-e2e-users.ts",
         "prettier-fix": "prettier --write .",
         "db:generate": "prisma generate",
         "db:migrate": "prisma migrate dev",
         "db:push": "prisma db push",
         "db:reset": "prisma migrate reset",
-        "db:studio": "prisma studio"
+        "db:studio": "prisma studio",
+        "db:seed": "prisma db seed",
+        "db:seed:dev": "tsx prisma/seed.dev.ts"
+        
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
         "@hookform/resolvers": "^5.9.1",
+        "@mui/icons-material": "^9.4.0",
         "@mui/material": "^9.4.0",
         "@mui/x-data-grid": "^9.14.0",
         "@prisma/adapter-better-sqlite3": "^7.10.0",
@@ -36,23 +48,27 @@
         "react": "19.2.8",
         "react-dom": "19.2.8",
         "react-hook-form": "^7.88.0",
+        "react-mui-sidebar": "^1.6.10",
         "sqlite3": "^6.0.1",
         "yup": "^1.7.1"
     },
     "devDependencies": {
         "@commitlint/cli": "^21.2.2",
         "@commitlint/config-conventional": "^21.2.2",
+        "@playwright/test": "^1.65.1",
         "@types/node": "^20",
         "@types/pg": "^8.23.1",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "@vitest/coverage-v8": "^3.2.7",
         "dotenv": "^17.4.2",
         "eslint": "^9",
         "eslint-config-next": "16.3.5",
         "husky": "^9.1.7",
         "prettier": "^3.9.6",
         "prisma": "^7.10.0",
-        "tsx": "^4.23.13",
-        "typescript": "^5"
+        "tsx": "^4.23.15",
+        "typescript": "^5",
+        "vitest": "^3.2.7"
     }
 }
