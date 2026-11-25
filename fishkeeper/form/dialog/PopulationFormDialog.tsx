@@ -7,6 +7,7 @@ import type {
     IAquariumPopulationDetails,
     IPopulationAquariumOption,
 } from '@/interface/entity/aquarium-population.entity';
+import { toCalendarDateInput } from '@/lib/format';
 import PopulationForm from '../form/PopulationForm';
 import type { PopulationFormValues } from '../schema/population.schema';
 
@@ -25,7 +26,7 @@ interface PopulationFormDialogProps {
 function toFormValues(data: IAquariumPopulationDetails): PopulationFormValues {
     return {
         name: data.name ?? '',
-        introducedAt: new Date(data.introducedAt).toISOString().slice(0, 10),
+        introducedAt: toCalendarDateInput(data.introducedAt),
         notes: data.notes ?? '',
         size: data.size ?? undefined,
         weight: data.weight ?? undefined,
@@ -50,19 +51,32 @@ export default function PopulationFormDialog({
         onClose();
     };
 
-    const handleSubmit = async (values: PopulationFormValues): Promise<void> => {
+    const handleSubmit = async (
+        values: PopulationFormValues
+    ): Promise<void> => {
         setError(null);
         try {
             await onSave(values, data);
             handleClose();
         } catch (saveError) {
-            setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
+            setError(
+                saveError instanceof Error
+                    ? saveError.message
+                    : 'Une erreur est survenue.'
+            );
         }
     };
 
     return (
-        <Dialog open={open} onClose={isLoading ? undefined : handleClose} fullWidth maxWidth="sm">
-            <DialogTitle>{data ? 'Modifier un individu' : 'Créer un individu'}</DialogTitle>
+        <Dialog
+            open={open}
+            onClose={isLoading ? undefined : handleClose}
+            fullWidth
+            maxWidth="sm"
+        >
+            <DialogTitle>
+                {data ? 'Modifier un individu' : 'Créer un individu'}
+            </DialogTitle>
             <DialogContent>
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>

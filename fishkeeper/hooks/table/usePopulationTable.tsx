@@ -1,15 +1,12 @@
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { Box, Button } from '@mui/material';
 
+import RowActions from '@/components/utils/RowActions';
 import type { IAquariumPopulationDetails } from '@/interface/entity/aquarium-population.entity';
+import { formatCalendarDate, formatWithUnit } from '@/lib/format';
 
 interface UsePopulationTableProps {
     handleOpenEdit: (population: IAquariumPopulationDetails) => void;
     handleDelete: (population: IAquariumPopulationDetails) => void;
-}
-
-export function formatPopulationDate(value: Date | string): string {
-    return new Date(value).toLocaleDateString('fr-FR');
 }
 
 export const usePopulationTable = ({
@@ -21,21 +18,24 @@ export const usePopulationTable = ({
         headerName: 'Nom',
         flex: 1,
         minWidth: 140,
-        valueFormatter: (value: IAquariumPopulationDetails['name']) => value || '—',
+        valueFormatter: (value: IAquariumPopulationDetails['name']) =>
+            value || '—',
     },
     {
         field: 'species',
         headerName: 'Espèce',
         flex: 1,
         minWidth: 180,
-        valueGetter: (value: IAquariumPopulationDetails['species']) => value.name,
+        valueGetter: (value: IAquariumPopulationDetails['species']) =>
+            value.name,
     },
     {
         field: 'aquarium',
         headerName: 'Aquarium',
         flex: 1,
         minWidth: 160,
-        valueGetter: (value: IAquariumPopulationDetails['aquarium']) => value.name,
+        valueGetter: (value: IAquariumPopulationDetails['aquarium']) =>
+            value.name,
     },
     {
         field: 'owner',
@@ -49,8 +49,9 @@ export const usePopulationTable = ({
         headerName: 'Introduit le',
         type: 'date',
         width: 130,
-        valueGetter: (value: IAquariumPopulationDetails['introducedAt']) => new Date(value),
-        valueFormatter: (value: Date) => formatPopulationDate(value),
+        valueGetter: (value: IAquariumPopulationDetails['introducedAt']) =>
+            new Date(value),
+        valueFormatter: (value: Date) => formatCalendarDate(value),
     },
     {
         field: 'size',
@@ -58,7 +59,7 @@ export const usePopulationTable = ({
         type: 'number',
         width: 100,
         valueFormatter: (value: IAquariumPopulationDetails['size']) =>
-            value != null ? `${value} cm` : '—',
+            formatWithUnit(value, 'cm'),
     },
     {
         field: 'weight',
@@ -66,7 +67,7 @@ export const usePopulationTable = ({
         type: 'number',
         width: 100,
         valueFormatter: (value: IAquariumPopulationDetails['weight']) =>
-            value != null ? `${value} g` : '—',
+            formatWithUnit(value, 'g'),
     },
     {
         field: 'actions',
@@ -74,20 +75,14 @@ export const usePopulationTable = ({
         width: 250,
         sortable: false,
         filterable: false,
-        renderCell: (params: GridRenderCellParams<IAquariumPopulationDetails>) => (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
-                <Button variant="outlined" size="small" onClick={() => handleOpenEdit(params.row)}>
-                    Modifier
-                </Button>
-                <Button
-                    variant="contained"
-                    color="error"
-                    size="small"
-                    onClick={() => handleDelete(params.row)}
-                >
-                    Supprimer
-                </Button>
-            </Box>
+        renderCell: (
+            params: GridRenderCellParams<IAquariumPopulationDetails>
+        ) => (
+            <RowActions
+                sx={{ height: '100%' }}
+                onEdit={() => handleOpenEdit(params.row)}
+                onDelete={() => handleDelete(params.row)}
+            />
         ),
     },
 ];

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { populationSchema } from '@/form/schema/population.schema';
 import { speciesSchema } from '@/form/schema/species.schema';
-import { formatDecimalInput, parseDecimalInput, sanitizeDecimalInput } from '@/lib/decimal-input';
+import {
+    formatDecimalInput,
+    parseDecimalInput,
+    sanitizeDecimalInput,
+} from '@/lib/decimal-input';
 
 const CATEGORY_ID = '00000000-0000-4000-8000-000000000001';
 
@@ -45,20 +49,31 @@ describe('speciesSchema', () => {
         [{ minTemperature: -1 }, 'La valeur doit être comprise entre 0 et 45.'],
         [{ minPh: 7.123 }, '2 décimales maximum.'],
         [{ minVolume: 10.5 }, 'Veuillez saisir un nombre entier.'],
-        [{ minPh: 8, maxPh: 6 }, 'Le maximum doit être supérieur ou égal au minimum.'],
+        [
+            { minPh: 8, maxPh: 6 },
+            'Le maximum doit être supérieur ou égal au minimum.',
+        ],
         [{ name: 'x'.repeat(121) }, '120 caractères maximum.'],
         [{ imageURL: 'javascript:alert(1)' }, "L'URL de l'image est invalide."],
         [{ waterType: 'LAVA' }, "Le type d'eau est invalide."],
     ])('refuses %o', async (overrides, message) => {
-        await expect(speciesSchema.validate({ ...valid, ...overrides })).rejects.toThrow(message);
+        await expect(
+            speciesSchema.validate({ ...valid, ...overrides })
+        ).rejects.toThrow(message);
     });
 });
 
 describe('populationSchema', () => {
-    const valid = { aquariumId: 'a', speciesId: 's', introducedAt: '2026-01-15' };
+    const valid = {
+        aquariumId: 'a',
+        speciesId: 's',
+        introducedAt: '2026-01-15',
+    };
 
     it('accepts a valid population', async () => {
-        await expect(populationSchema.validate({ ...valid, size: 3.5 })).resolves.toBeTruthy();
+        await expect(
+            populationSchema.validate({ ...valid, size: 3.5 })
+        ).resolves.toBeTruthy();
     });
 
     it.each([
@@ -69,6 +84,8 @@ describe('populationSchema', () => {
         [{ weight: Number.NaN }, 'Veuillez saisir un nombre valide.'],
         [{ notes: 'x'.repeat(2001) }, '2000 caractères maximum.'],
     ])('refuses %o', async (overrides, message) => {
-        await expect(populationSchema.validate({ ...valid, ...overrides })).rejects.toThrow(message);
+        await expect(
+            populationSchema.validate({ ...valid, ...overrides })
+        ).rejects.toThrow(message);
     });
 });

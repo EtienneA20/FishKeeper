@@ -21,11 +21,21 @@ import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import NumberField from '@/components/utils/NumberField';
-import { AGGRESSIVENESS_LABEL, EAggressiveness } from '@/constants/enum/aggressiveness.enum';
+import {
+    AGGRESSIVENESS_LABEL,
+    EAggressiveness,
+} from '@/constants/enum/aggressiveness.enum';
 import { EWaterType, WATER_TYPE_LABEL } from '@/constants/enum/water-type.enum';
-import { SPECIES_LIMITS, TEXT_LIMITS, type NumberLimit } from '@/constants/form-limits';
+import {
+    SPECIES_LIMITS,
+    TEXT_LIMITS,
+    type NumberLimit,
+} from '@/constants/form-limits';
 import type { ISpeciesCategory } from '@/interface/entity/species-category.entity';
-import { speciesSchema, type SpeciesFormValues } from '../schema/species.schema';
+import {
+    speciesSchema,
+    type SpeciesFormValues,
+} from '../schema/species.schema';
 
 type CategoryOption = Pick<ISpeciesCategory, 'id' | 'name'>;
 type NumberFieldName = keyof Pick<
@@ -56,8 +66,20 @@ const RANGE_FIELDS: {
         limit: SPECIES_LIMITS.temperature,
     },
     { label: 'pH', min: 'minPh', max: 'maxPh', limit: SPECIES_LIMITS.ph },
-    { label: 'GH', unit: '°dGH', min: 'minGh', max: 'maxGh', limit: SPECIES_LIMITS.gh },
-    { label: 'KH', unit: '°dKH', min: 'minKh', max: 'maxKh', limit: SPECIES_LIMITS.kh },
+    {
+        label: 'GH',
+        unit: '°dGH',
+        min: 'minGh',
+        max: 'maxGh',
+        limit: SPECIES_LIMITS.gh,
+    },
+    {
+        label: 'KH',
+        unit: '°dKH',
+        min: 'minKh',
+        max: 'maxKh',
+        limit: SPECIES_LIMITS.kh,
+    },
 ];
 
 interface SpeciesFormProps {
@@ -99,10 +121,17 @@ export default function SpeciesForm({
         [categoryOptions]
     );
 
-    const numberField = (name: NumberFieldName, label: string, limit: NumberLimit): React.JSX.Element => (
+    const numberField = (
+        name: NumberFieldName,
+        label: string,
+        limit: NumberLimit,
+        /** Champ max revalidé quand ce champ min change (règle max ≥ min). */
+        dependentMax?: NumberFieldName
+    ): React.JSX.Element => (
         <Controller
             name={name}
             control={control}
+            rules={dependentMax ? { deps: [dependentMax] } : undefined}
             render={({ field }) => (
                 <NumberField
                     label={label}
@@ -138,7 +167,9 @@ export default function SpeciesForm({
                 <TextField
                     label="Nom scientifique"
                     {...register('scientificName')}
-                    slotProps={{ htmlInput: { maxLength: TEXT_LIMITS.scientificName } }}
+                    slotProps={{
+                        htmlInput: { maxLength: TEXT_LIMITS.scientificName },
+                    }}
                     error={Boolean(errors.scientificName)}
                     helperText={errors.scientificName?.message}
                     fullWidth
@@ -153,17 +184,25 @@ export default function SpeciesForm({
                             options={categoryOptions}
                             value={field.value
                                 .map((id) => optionsById.get(id))
-                                .filter((option): option is CategoryOption => Boolean(option))}
+                                .filter((option): option is CategoryOption =>
+                                    Boolean(option)
+                                )}
                             onChange={(_event, selected) =>
-                                field.onChange(selected.map((option) => option.id))
+                                field.onChange(
+                                    selected.map((option) => option.id)
+                                )
                             }
                             getOptionLabel={(option) => option.name}
-                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            isOptionEqualToValue={(option, value) =>
+                                option.id === value.id
+                            }
                             disabled={isLoading}
                             noOptionsText="Aucune catégorie"
                             renderValue={(selected, getItemProps) =>
                                 selected.map((option, index) => {
-                                    const { key, ...itemProps } = getItemProps({ index });
+                                    const { key, ...itemProps } = getItemProps({
+                                        index,
+                                    });
                                     return (
                                         <Chip
                                             key={key}
@@ -188,7 +227,9 @@ export default function SpeciesForm({
                 <TextField
                     label="Description"
                     {...register('description')}
-                    slotProps={{ htmlInput: { maxLength: TEXT_LIMITS.description } }}
+                    slotProps={{
+                        htmlInput: { maxLength: TEXT_LIMITS.description },
+                    }}
                     error={Boolean(errors.description)}
                     helperText={errors.description?.message}
                     fullWidth
@@ -208,8 +249,14 @@ export default function SpeciesForm({
                 />
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                    <FormControl fullWidth error={Boolean(errors.waterType)} disabled={isLoading}>
-                        <InputLabel id="water-type-select-label">Type d&apos;eau</InputLabel>
+                    <FormControl
+                        fullWidth
+                        error={Boolean(errors.waterType)}
+                        disabled={isLoading}
+                    >
+                        <InputLabel id="water-type-select-label">
+                            Type d&apos;eau
+                        </InputLabel>
                         <Controller
                             name="waterType"
                             control={control}
@@ -221,25 +268,42 @@ export default function SpeciesForm({
                                     value={field.value ?? ''}
                                     onChange={(event) =>
                                         field.onChange(
-                                            (event.target.value || undefined) as EWaterType | undefined
+                                            (event.target.value ||
+                                                undefined) as
+                                                EWaterType | undefined
                                         )
                                     }
                                 >
                                     <MenuItem value="">
                                         <em>Non renseigné</em>
                                     </MenuItem>
-                                    {Object.values(EWaterType).map((waterType) => (
-                                        <MenuItem key={waterType} value={waterType}>
-                                            {WATER_TYPE_LABEL[waterType]}
-                                        </MenuItem>
-                                    ))}
+                                    {Object.values(EWaterType).map(
+                                        (waterType) => (
+                                            <MenuItem
+                                                key={waterType}
+                                                value={waterType}
+                                            >
+                                                {WATER_TYPE_LABEL[waterType]}
+                                            </MenuItem>
+                                        )
+                                    )}
                                 </Select>
                             )}
                         />
-                        {errors.waterType && <FormHelperText>{errors.waterType.message}</FormHelperText>}
+                        {errors.waterType && (
+                            <FormHelperText>
+                                {errors.waterType.message}
+                            </FormHelperText>
+                        )}
                     </FormControl>
-                    <FormControl fullWidth error={Boolean(errors.aggressiveness)} disabled={isLoading}>
-                        <InputLabel id="aggressiveness-select-label">Agressivité</InputLabel>
+                    <FormControl
+                        fullWidth
+                        error={Boolean(errors.aggressiveness)}
+                        disabled={isLoading}
+                    >
+                        <InputLabel id="aggressiveness-select-label">
+                            Agressivité
+                        </InputLabel>
                         <Controller
                             name="aggressiveness"
                             control={control}
@@ -251,53 +315,91 @@ export default function SpeciesForm({
                                     value={field.value ?? ''}
                                     onChange={(event) =>
                                         field.onChange(
-                                            (event.target.value || undefined) as
-                                                | EAggressiveness
-                                                | undefined
+                                            (event.target.value ||
+                                                undefined) as
+                                                EAggressiveness | undefined
                                         )
                                     }
                                 >
                                     <MenuItem value="">
                                         <em>Non renseigné</em>
                                     </MenuItem>
-                                    {Object.values(EAggressiveness).map((aggressiveness) => (
-                                        <MenuItem key={aggressiveness} value={aggressiveness}>
-                                            {AGGRESSIVENESS_LABEL[aggressiveness]}
-                                        </MenuItem>
-                                    ))}
+                                    {Object.values(EAggressiveness).map(
+                                        (aggressiveness) => (
+                                            <MenuItem
+                                                key={aggressiveness}
+                                                value={aggressiveness}
+                                            >
+                                                {
+                                                    AGGRESSIVENESS_LABEL[
+                                                        aggressiveness
+                                                    ]
+                                                }
+                                            </MenuItem>
+                                        )
+                                    )}
                                 </Select>
                             )}
                         />
                         {errors.aggressiveness && (
-                            <FormHelperText>{errors.aggressiveness.message}</FormHelperText>
+                            <FormHelperText>
+                                {errors.aggressiveness.message}
+                            </FormHelperText>
                         )}
                     </FormControl>
                 </Stack>
 
-                <Typography variant="subtitle2">Paramètres de maintenance</Typography>
+                <Typography variant="subtitle2">
+                    Paramètres de maintenance
+                </Typography>
                 <Grid container spacing={2}>
                     {RANGE_FIELDS.map(({ label, unit, min, max, limit }) => {
                         const suffix = unit ? ` (${unit})` : '';
                         return (
                             <Grid key={min} size={{ xs: 12, sm: 6 }}>
                                 <Stack direction="row" spacing={1}>
-                                    {numberField(min, `${label} min${suffix}`, limit)}
-                                    {numberField(max, `${label} max${suffix}`, limit)}
+                                    {numberField(
+                                        min,
+                                        `${label} min${suffix}`,
+                                        limit,
+                                        max
+                                    )}
+                                    {numberField(
+                                        max,
+                                        `${label} max${suffix}`,
+                                        limit
+                                    )}
                                 </Stack>
                             </Grid>
                         );
                     })}
                     <Grid size={{ xs: 12, sm: 6 }}>
-                        {numberField('minVolume', 'Volume minimal du bac (L)', SPECIES_LIMITS.volume)}
+                        {numberField(
+                            'minVolume',
+                            'Volume minimal du bac (L)',
+                            SPECIES_LIMITS.volume
+                        )}
                     </Grid>
                 </Grid>
 
                 <Stack direction="row" spacing={1}>
-                    <Button type="button" onClick={onCancel} disabled={isLoading}>
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={isLoading}
+                    >
                         Annuler
                     </Button>
-                    <Button type="submit" variant="contained" disabled={isLoading}>
-                        {isLoading ? <CircularProgress size={20} /> : submitLabel}
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <CircularProgress size={20} />
+                        ) : (
+                            submitLabel
+                        )}
                     </Button>
                 </Stack>
             </Stack>

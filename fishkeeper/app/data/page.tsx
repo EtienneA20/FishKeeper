@@ -74,7 +74,15 @@ const MODULES = [
 
 export default async function DataHomePage(): Promise<React.JSX.Element> {
   await requireDataAdminPage();
-  const counts = await Promise.all([
+  const [
+    users,
+    aquariums,
+    species,
+    speciesCategories,
+    equipment,
+    consumables,
+    populations,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.aquarium.count(),
     prisma.species.count(),
@@ -85,13 +93,13 @@ export default async function DataHomePage(): Promise<React.JSX.Element> {
   ]);
 
   const moduleCounts = {
-    users: counts[0],
-    aquariums: counts[1],
-    species: counts[2],
-    speciesCategories: counts[3],
-    equipment: counts[4],
-    consumables: counts[5],
-    populations: counts[6],
+    users,
+    aquariums,
+    species,
+    speciesCategories,
+    equipment,
+    consumables,
+    populations,
   };
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: { xs: 2, md: 4 } }}>

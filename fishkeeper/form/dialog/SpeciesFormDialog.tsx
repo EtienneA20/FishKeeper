@@ -15,7 +15,10 @@ interface SpeciesFormDialogProps {
     categoryOptions: Pick<ISpeciesCategory, 'id' | 'name'>[];
     isLoading?: boolean;
     onClose: () => void;
-    onSave: (values: SpeciesFormValues, data: ISpeciesDetails | null) => void | Promise<void>;
+    onSave: (
+        values: SpeciesFormValues,
+        data: ISpeciesDetails | null
+    ) => void | Promise<void>;
 }
 
 /** Les champs `null` de la base deviennent `undefined` (champ vide) dans le formulaire. */
@@ -61,13 +64,24 @@ export default function SpeciesFormDialog({
             await onSave(values, data);
             handleClose();
         } catch (saveError) {
-            setError(saveError instanceof Error ? saveError.message : 'Une erreur est survenue.');
+            setError(
+                saveError instanceof Error
+                    ? saveError.message
+                    : 'Une erreur est survenue.'
+            );
         }
     };
 
     return (
-        <Dialog open={open} onClose={isLoading ? undefined : handleClose} fullWidth maxWidth="md">
-            <DialogTitle>{data ? 'Modifier une espèce' : 'Créer une espèce'}</DialogTitle>
+        <Dialog
+            open={open}
+            onClose={isLoading ? undefined : handleClose}
+            fullWidth
+            maxWidth="md"
+        >
+            <DialogTitle>
+                {data ? 'Modifier une espèce' : 'Créer une espèce'}
+            </DialogTitle>
             <DialogContent>
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>

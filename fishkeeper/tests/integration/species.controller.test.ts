@@ -31,9 +31,16 @@ import {
     updateSpecies,
 } from '@/actions/species.controller';
 
-const NOT_AUTHENTICATED = 'Vous devez être connecté pour effectuer cette action.';
+const NOT_AUTHENTICATED =
+    'Vous devez être connecté pour effectuer cette action.';
 const FORBIDDEN = "Vous n'avez pas les droits pour effectuer cette action.";
 const UNKNOWN_ID = '00000000-0000-4000-8000-000000000000';
+
+/** Résultat d'Ne mutation refusée (le message peut regrouper plusieurs erreurs). */
+const failure = (message: string) => ({
+    ok: false,
+    error: expect.stringContaining(message),
+});
 
 type Account = Prisma.UserModel;
 type Category = Prisma.SpeciesCategoryModel;
@@ -59,9 +66,16 @@ beforeEach(async () => {
     await resetDatabase();
     admin = await createTestUser({ role: EROLE.ADMIN });
     user = await createTestUser({ role: EROLE.USER });
-    characins = await prisma.speciesCategory.create({ data: { name: 'Characidés' } });
-    cichlids = await prisma.speciesCategory.create({ data: { name: 'Cichlidés' } });
-    guppy = await createTestSpecies(characins.id, { name: 'Guppy', scientificName: 'Poecilia reticulata' });
+    characins = await prisma.speciesCategory.create({
+        data: { name: 'Characidés' },
+    });
+    cichlids = await prisma.speciesCategory.create({
+        data: { name: 'Cichlidés' },
+    });
+    guppy = await createTestSpecies(characins.id, {
+        name: 'Guppy',
+        scientificName: 'Poecilia reticulata',
+    });
     signInAs(admin);
 });
 
@@ -89,8 +103,14 @@ describe('access control', () => {
 
 describe('getSpecies', () => {
     beforeEach(async () => {
-        await createTestSpecies(cichlids.id, { name: 'Scalaire', minTemperature: 24 });
-        await createTestSpecies(cichlids.id, { name: 'Discus', minTemperature: 28 });
+        await createTestSpecies(cichlids.id, {
+            name: 'Scalaire',
+            minTemperature: 24,
+        });
+        await createTestSpecies(cichlids.id, {
+            name: 'Discus',
+            minTemperature: 28,
+        });
     });
 
     it('paginates by name and returns the total count', async () => {
@@ -109,18 +129,30 @@ describe('getSpecies', () => {
             sortField: 'minTemperature',
             sortOrder: 'desc',
         });
-        expect(byTemperature.rows.map((s) => s.name)).toEqual(['Discus', 'Scalaire', 'Guppy']);
+        expect(byTemperature.rows.map((s) => s.name)).toEqual([
+            'Discus',
+            'Scalaire',
+            'Guppy',
+        ]);
 
         const unknown = await getSpecies({
             page: 0,
             pageSize: 10,
             sortField: 'password' as never,
         });
-        expect(unknown.rows.map((s) => s.name)).toEqual(['Discus', 'Guppy', 'Scalaire']);
+        expect(unknown.rows.map((s) => s.name)).toEqual([
+            'Discus',
+            'Guppy',
+            'Scalaire',
+        ]);
     });
 
     it('searches on name and scientific name', async () => {
-        const result = await getSpecies({ page: 0, pageSize: 10, search: 'poecilia' });
+        const result = await getSpecies({
+            page: 0,
+            pageSize: 10,
+            search: 'poecilia',
+        });
         expect(result.total).toBe(1);
         expect(result.rows[0]).toMatchObject({
             name: 'Guppy',
@@ -136,13 +168,15 @@ describe('getSpecies', () => {
 
     it('limits the options returned to a selector', async () => {
         const options = await searchSpeciesOptions('us');
-        expect(options).toEqual([expect.objectContaining({ name: 'Discus', scientificName: null })]);
+        expect(options).toEqual([
+            expect.objectContaining({ name: 'Discus', scientificName: null }),
+        ]);
     });
 });
 
 describe('createSpecies', () => {
     it('creates a trimmed species with all its fields and categories', async () => {
-        await createSpecies(
+        const result = await createSpecies(
             speciesForm({
                 name: '  Néon bleu  ',
                 scientificName: '  ',
@@ -156,6 +190,7 @@ describe('createSpecies', () => {
                 aggressiveness: EAggressiveness.PEACEFUL,
             })
         );
+        expect(result).toEqual({ ok: true });
 
         const created = await prisma.species.findUniqueOrThrow({
             where: { name: 'Néon bleu' },
@@ -169,38 +204,41 @@ describe('createSpecies', () => {
             minVolume: 54,
             aggressiveness: EAggressiveness.PEACEFUL,
         });
-        expect(created.categories.map((c) => c.name)).toEqual(['Characidés', 'Cichlidés']);
+        expect(created.categories.map((c) => c.name)).toEqual([
+            'Characidés',
+            'Cichlidés',
+        ]);
     });
 
     it('refuses a duplicate name', async () => {
-        await expect(createSpecies(speciesForm({ name: 'Guppy' }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NAME_TAKEN
-        );
+        await expect(
+            createSpecies(speciesForm({ name: 'Guppy' }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NAME_TAKEN));
     });
 
     it('refuses a name that is too short', async () => {
-        await expect(createSpecies(speciesForm({ name: 'A' }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NAME_TOO_SHORT
-        );
+        await expect(
+            createSpecies(speciesForm({ name: 'A' }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NAME_TOO_SHORT));
     });
 
     it('requires at least one existing category', async () => {
-        await expect(createSpecies(speciesForm({ categoryIds: [] }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_CATEGORY_REQUIRED
-        );
-        await expect(createSpecies(speciesForm({ categoryIds: [UNKNOWN_ID] }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_CATEGORY_INVALID
-        );
+        await expect(
+            createSpecies(speciesForm({ categoryIds: [] }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_CATEGORY_REQUIRED));
+        await expect(
+            createSpecies(speciesForm({ categoryIds: [UNKNOWN_ID] }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_CATEGORY_INVALID));
         expect(await prisma.species.count()).toBe(1);
     });
 
     it('refuses invalid enums, negative numbers and inverted ranges', async () => {
         await expect(
             createSpecies(speciesForm({ waterType: 'LAVA' as EWaterType }))
-        ).rejects.toThrow(EERROR_MESSAGE.SPECIES_WATER_TYPE_INVALID);
-        await expect(createSpecies(speciesForm({ minPh: -1 }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NUMBER_INVALID
-        );
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_WATER_TYPE_INVALID));
+        await expect(
+            createSpecies(speciesForm({ minPh: -1 }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NUMBER_INVALID));
         for (const outOfBounds of [
             { maxPh: 15 },
             { maxTemperature: 1000 },
@@ -210,29 +248,36 @@ describe('createSpecies', () => {
             { minKh: Number.POSITIVE_INFINITY },
             { minGh: '12' as unknown as number },
         ]) {
-            await expect(createSpecies(speciesForm(outOfBounds))).rejects.toThrow(
-                EERROR_MESSAGE.SPECIES_NUMBER_INVALID
-            );
+            await expect(
+                createSpecies(speciesForm(outOfBounds))
+            ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NUMBER_INVALID));
         }
-        await expect(createSpecies(speciesForm({ name: 'x'.repeat(121) }))).rejects.toThrow(
-            EERROR_MESSAGE.TEXT_TOO_LONG
-        );
+        await expect(
+            createSpecies(speciesForm({ name: 'x'.repeat(121) }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.TEXT_TOO_LONG));
         await expect(
             createSpecies(speciesForm({ imageURL: 'javascript:alert(1)' }))
-        ).rejects.toThrow(EERROR_MESSAGE.IMAGE_URL_INVALID);
+        ).resolves.toEqual(failure(EERROR_MESSAGE.IMAGE_URL_INVALID));
         await expect(
-            createSpecies(speciesForm({ minTemperature: 30, maxTemperature: 20 }))
-        ).rejects.toThrow(EERROR_MESSAGE.SPECIES_RANGE_INVALID);
+            createSpecies(
+                speciesForm({ minTemperature: 30, maxTemperature: 20 })
+            )
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_RANGE_INVALID));
         expect(await prisma.species.count()).toBe(1);
     });
 });
 
 describe('updateSpecies', () => {
     it('replaces the fields and categories, clearing omitted values', async () => {
-        await updateSpecies(
+        const result = await updateSpecies(
             guppy.id,
-            speciesForm({ name: 'Guppy', categoryIds: [cichlids.id], minTemperature: 22 })
+            speciesForm({
+                name: 'Guppy',
+                categoryIds: [cichlids.id],
+                minTemperature: 22,
+            })
         );
+        expect(result).toEqual({ ok: true });
 
         const updated = await getSpeciesById(guppy.id);
         expect(updated).toMatchObject({
@@ -244,24 +289,28 @@ describe('updateSpecies', () => {
 
     it('allows keeping its own name but not taking another one', async () => {
         await createTestSpecies(characins.id, { name: 'Platy' });
-        await expect(updateSpecies(guppy.id, speciesForm({ name: 'Guppy' }))).resolves.toBeUndefined();
-        await expect(updateSpecies(guppy.id, speciesForm({ name: 'Platy' }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NAME_TAKEN
-        );
+        await expect(
+            updateSpecies(guppy.id, speciesForm({ name: 'Guppy' }))
+        ).resolves.toEqual({ ok: true });
+        await expect(
+            updateSpecies(guppy.id, speciesForm({ name: 'Platy' }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NAME_TAKEN));
     });
 
     it('refuses an unknown species', async () => {
-        await expect(updateSpecies(UNKNOWN_ID, speciesForm())).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NOT_FOUND
+        await expect(updateSpecies(UNKNOWN_ID, speciesForm())).resolves.toEqual(
+            failure(EERROR_MESSAGE.SPECIES_NOT_FOUND)
         );
     });
 });
 
 describe('deleteSpecies', () => {
     it('deletes the species and keeps its categories', async () => {
-        await deleteSpecies(guppy.id);
+        expect(await deleteSpecies(guppy.id)).toEqual({ ok: true });
 
-        expect(await prisma.species.findUnique({ where: { id: guppy.id } })).toBeNull();
+        expect(
+            await prisma.species.findUnique({ where: { id: guppy.id } })
+        ).toBeNull();
         expect(await prisma.speciesCategory.count()).toBe(2);
     });
 
@@ -271,11 +320,15 @@ describe('deleteSpecies', () => {
             data: { aquariumId: aquarium.id, speciesId: guppy.id },
         });
 
-        await expect(deleteSpecies(guppy.id)).rejects.toThrow(EERROR_MESSAGE.SPECIES_IN_AQUARIUM);
+        await expect(deleteSpecies(guppy.id)).resolves.toEqual(
+            failure(EERROR_MESSAGE.SPECIES_IN_AQUARIUM)
+        );
         expect(await prisma.species.count()).toBe(1);
     });
 
     it('refuses an unknown species', async () => {
-        await expect(deleteSpecies(UNKNOWN_ID)).rejects.toThrow(EERROR_MESSAGE.SPECIES_NOT_FOUND);
+        await expect(deleteSpecies(UNKNOWN_ID)).resolves.toEqual(
+            failure(EERROR_MESSAGE.SPECIES_NOT_FOUND)
+        );
     });
 });

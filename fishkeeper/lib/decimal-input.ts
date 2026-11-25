@@ -24,5 +24,7 @@ export function parseDecimalInput(text: string): number | undefined {
 
 /** Valeur numérique → texte affiché, avec la virgule française. */
 export function formatDecimalInput(value: number | null | undefined): string {
-    return value == null || Number.isNaN(value) ? '' : String(value).replace('.', ',');
+    return value == null || Number.isNaN(value)
+        ? ''
+        : String(value).replace('.', ',');
 }

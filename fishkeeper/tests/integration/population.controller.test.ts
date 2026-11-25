@@ -30,9 +30,16 @@ import {
     updatePopulation,
 } from '@/actions/population.controller';
 
-const NOT_AUTHENTICATED = 'Vous devez être connecté pour effectuer cette action.';
+const NOT_AUTHENTICATED =
+    'Vous devez être connecté pour effectuer cette action.';
 const FORBIDDEN = "Vous n'avez pas les droits pour effectuer cette action.";
 const UNKNOWN_ID = '00000000-0000-4000-8000-000000000000';
+
+/** Résultat d'Ne mutation refusée (le message peut regrouper plusieurs erreurs). */
+const failure = (message: string) => ({
+    ok: false,
+    error: expect.stringContaining(message),
+});
 
 type Account = Prisma.UserModel;
 type Aquarium = Prisma.AquariumModel;
@@ -45,7 +52,9 @@ function signInAs(account: { id: string; role: string } | null): void {
     );
 }
 
-function populationForm(overrides: Partial<IAquariumPopulationDto> = {}): IAquariumPopulationDto {
+function populationForm(
+    overrides: Partial<IAquariumPopulationDto> = {}
+): IAquariumPopulationDto {
     return { aquariumId: aquarium.id, speciesId: neon.id, ...overrides };
 }
 
@@ -76,7 +85,10 @@ describe('access control', () => {
         ['getPopulationById', () => getPopulationById(existing.id)],
         ['getPopulationAquariumOptions', () => getPopulationAquariumOptions()],
         ['createPopulation', () => createPopulation(populationForm())],
-        ['updatePopulation', () => updatePopulation(existing.id, populationForm())],
+        [
+            'updatePopulation',
+            () => updatePopulation(existing.id, populationForm()),
+        ],
         ['deletePopulation', () => deletePopulation(existing.id)],
     ] as const;
 
@@ -99,7 +111,11 @@ describe('getPopulations', () => {
         expect(populations).toHaveLength(1);
         expect(populations[0]).toMatchObject({
             name: 'Bubulle',
-            aquarium: { id: aquarium.id, name: 'Bac salon', ownerName: 'Alice' },
+            aquarium: {
+                id: aquarium.id,
+                name: 'Bac salon',
+                ownerName: 'Alice',
+            },
             species: { id: guppy.id, name: 'Guppy' },
         });
     });
@@ -117,7 +133,7 @@ describe('getPopulations', () => {
 
 describe('createPopulation', () => {
     it('creates a trimmed population with its fields', async () => {
-        await createPopulation(
+        const result = await createPopulation(
             populationForm({
                 name: '  Nemo  ',
                 notes: ' ',
@@ -126,103 +142,144 @@ describe('createPopulation', () => {
                 weight: 1,
             })
         );
+        expect(result).toEqual({ ok: true });
 
         const created = await prisma.aquariumPopulation.findUniqueOrThrow({
-            where: { aquariumId_speciesId: { aquariumId: aquarium.id, speciesId: neon.id } },
+            where: {
+                aquariumId_speciesId: {
+                    aquariumId: aquarium.id,
+                    speciesId: neon.id,
+                },
+            },
         });
-        expect(created).toMatchObject({ name: 'Nemo', notes: null, size: 3.5, weight: 1 });
-        expect(created.introducedAt.toISOString()).toBe('2026-01-15T00:00:00.000Z');
+        expect(created).toMatchObject({
+            name: 'Nemo',
+            notes: null,
+            size: 3.5,
+            weight: 1,
+        });
+        expect(created.introducedAt.toISOString()).toBe(
+            '2026-01-15T00:00:00.000Z'
+        );
     });
 
     it('defaults the introduction date to now', async () => {
         const before = Date.now();
-        await createPopulation(populationForm());
+        expect(await createPopulation(populationForm())).toEqual({ ok: true });
 
-        const created = await prisma.aquariumPopulation.findFirstOrThrow({ where: { speciesId: neon.id } });
-        expect(created.introducedAt.getTime()).toBeGreaterThanOrEqual(before - 1000);
+        const created = await prisma.aquariumPopulation.findFirstOrThrow({
+            where: { speciesId: neon.id },
+        });
+        expect(created.introducedAt.getTime()).toBeGreaterThanOrEqual(
+            before - 1000
+        );
     });
 
     it('refuses a species already in the aquarium', async () => {
-        await expect(createPopulation(populationForm({ speciesId: guppy.id }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM
+        await expect(
+            createPopulation(populationForm({ speciesId: guppy.id }))
+        ).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM)
         );
     });
 
     it('refuses an unknown aquarium or species', async () => {
-        await expect(createPopulation(populationForm({ aquariumId: UNKNOWN_ID }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_AQUARIUM_INVALID
-        );
-        await expect(createPopulation(populationForm({ speciesId: UNKNOWN_ID }))).rejects.toThrow(
-            EERROR_MESSAGE.SPECIES_NOT_FOUND
-        );
+        await expect(
+            createPopulation(populationForm({ aquariumId: UNKNOWN_ID }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_AQUARIUM_INVALID));
+        await expect(
+            createPopulation(populationForm({ speciesId: UNKNOWN_ID }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.SPECIES_NOT_FOUND));
         expect(await prisma.aquariumPopulation.count()).toBe(1);
     });
 
     it('refuses missing ids, invalid dates and negative numbers', async () => {
-        await expect(createPopulation(populationForm({ aquariumId: '' }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_AQUARIUM_REQUIRED
+        await expect(
+            createPopulation(populationForm({ aquariumId: '' }))
+        ).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_AQUARIUM_REQUIRED)
         );
-        await expect(createPopulation(populationForm({ introducedAt: 'hier' }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_DATE_INVALID
-        );
-        await expect(createPopulation(populationForm({ size: -2 }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_NUMBER_INVALID
-        );
-        await expect(createPopulation(populationForm({ weight: 100_001 }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_NUMBER_INVALID
-        );
-        await expect(createPopulation(populationForm({ size: Number.NaN }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_NUMBER_INVALID
-        );
-        await expect(createPopulation(populationForm({ notes: 'x'.repeat(2001) }))).rejects.toThrow(
-            EERROR_MESSAGE.TEXT_TOO_LONG
-        );
+        await expect(
+            createPopulation(populationForm({ introducedAt: 'hier' }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_DATE_INVALID));
+        await expect(
+            createPopulation(populationForm({ size: -2 }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_NUMBER_INVALID));
+        await expect(
+            createPopulation(populationForm({ weight: 100_001 }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_NUMBER_INVALID));
+        await expect(
+            createPopulation(populationForm({ size: Number.NaN }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_NUMBER_INVALID));
+        await expect(
+            createPopulation(populationForm({ notes: 'x'.repeat(2001) }))
+        ).resolves.toEqual(failure(EERROR_MESSAGE.TEXT_TOO_LONG));
         expect(await prisma.aquariumPopulation.count()).toBe(1);
     });
 
     it('refuses an introduction date in the future or before 1900', async () => {
-        await expect(createPopulation(populationForm({ introducedAt: '3000-01-01' }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_DATE_OUT_OF_RANGE
+        await expect(
+            createPopulation(populationForm({ introducedAt: '3000-01-01' }))
+        ).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_DATE_OUT_OF_RANGE)
         );
-        await expect(createPopulation(populationForm({ introducedAt: '1850-06-01' }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_DATE_OUT_OF_RANGE
+        await expect(
+            createPopulation(populationForm({ introducedAt: '1850-06-01' }))
+        ).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_DATE_OUT_OF_RANGE)
         );
     });
 });
 
 describe('updatePopulation', () => {
     it('updates the fields and keeps the date when none is given', async () => {
-        await updatePopulation(existing.id, populationForm({ speciesId: guppy.id, weight: 2 }));
+        expect(
+            await updatePopulation(
+                existing.id,
+                populationForm({ speciesId: guppy.id, weight: 2 })
+            )
+        ).toEqual({ ok: true });
 
-        const updated = await prisma.aquariumPopulation.findUniqueOrThrow({ where: { id: existing.id } });
+        const updated = await prisma.aquariumPopulation.findUniqueOrThrow({
+            where: { id: existing.id },
+        });
         expect(updated).toMatchObject({ name: null, weight: 2 });
         expect(updated.introducedAt).toEqual(existing.introducedAt);
     });
 
     it('can move to another species when the pair is free', async () => {
-        await updatePopulation(existing.id, populationForm({ speciesId: neon.id }));
-        expect((await getPopulationById(existing.id))?.species.name).toBe('Néon');
+        expect(
+            await updatePopulation(
+                existing.id,
+                populationForm({ speciesId: neon.id })
+            )
+        ).toEqual({ ok: true });
+        expect((await getPopulationById(existing.id))?.species.name).toBe(
+            'Néon'
+        );
     });
 
     it('refuses a pair already used by another population', async () => {
         const other = await prisma.aquariumPopulation.create({
             data: { aquariumId: aquarium.id, speciesId: neon.id },
         });
-        await expect(updatePopulation(other.id, populationForm({ speciesId: guppy.id }))).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM
+        await expect(
+            updatePopulation(other.id, populationForm({ speciesId: guppy.id }))
+        ).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_ALREADY_IN_AQUARIUM)
         );
     });
 
     it('refuses an unknown population', async () => {
-        await expect(updatePopulation(UNKNOWN_ID, populationForm())).rejects.toThrow(
-            EERROR_MESSAGE.POPULATION_NOT_FOUND
-        );
+        await expect(
+            updatePopulation(UNKNOWN_ID, populationForm())
+        ).resolves.toEqual(failure(EERROR_MESSAGE.POPULATION_NOT_FOUND));
     });
 });
 
 describe('deletePopulation', () => {
     it('deletes the population and keeps the species and aquarium', async () => {
-        await deletePopulation(existing.id);
+        expect(await deletePopulation(existing.id)).toEqual({ ok: true });
 
         expect(await prisma.aquariumPopulation.count()).toBe(0);
         expect(await prisma.species.count()).toBe(2);
@@ -230,6 +287,8 @@ describe('deletePopulation', () => {
     });
 
     it('refuses an unknown population', async () => {
-        await expect(deletePopulation(UNKNOWN_ID)).rejects.toThrow(EERROR_MESSAGE.POPULATION_NOT_FOUND);
+        await expect(deletePopulation(UNKNOWN_ID)).resolves.toEqual(
+            failure(EERROR_MESSAGE.POPULATION_NOT_FOUND)
+        );
     });
 });

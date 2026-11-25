@@ -17,13 +17,22 @@ const TOO_LONG = { message: EERROR_MESSAGE.TEXT_TOO_LONG };
 const { size, weight } = POPULATION_LIMITS;
 
 export class IAquariumPopulationDto {
-    @IsString() @IsOptional() @MaxLength(TEXT_LIMITS.name, TOO_LONG) name?: string;
+    @IsString()
+    @IsOptional()
+    @MaxLength(TEXT_LIMITS.name, TOO_LONG)
+    name?: string;
 
-    @IsDateString({ strict: true }, { message: EERROR_MESSAGE.POPULATION_DATE_INVALID })
+    @IsDateString(
+        { strict: true },
+        { message: EERROR_MESSAGE.POPULATION_DATE_INVALID }
+    )
     @IsOptional()
     introducedAt?: string;
 
-    @IsString() @IsOptional() @MaxLength(TEXT_LIMITS.notes, TOO_LONG) notes?: string;
+    @IsString()
+    @IsOptional()
+    @MaxLength(TEXT_LIMITS.notes, TOO_LONG)
+    notes?: string;
 
     @IsOptional()
     @IsNumber({ maxDecimalPlaces: size.decimals }, NUMBER)

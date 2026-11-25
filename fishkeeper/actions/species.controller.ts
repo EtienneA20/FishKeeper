@@ -1,6 +1,5 @@
 'use server';
 
-import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
 
 import { EAggressiveness } from '@/constants/enum/aggressiveness.enum';
@@ -15,8 +14,10 @@ import {
     type ISpeciesPage,
     type ISpeciesQuery,
 } from '@/interface/entity/species.entity';
+import { ActionError, runAction, type ActionResult } from '@/lib/action-result';
 import { requireRole } from '@/lib/auth-guard';
 import prisma from '@/lib/db';
+import { assertValidDto, emptyToUndefined } from '@/lib/validate-dto';
 
 const MAX_PAGE_SIZE = 100;
 const OPTIONS_LIMIT = 20;
@@ -92,35 +93,31 @@ function toSpeciesDetails({ _count, ...row }: SpeciesRow): ISpeciesDetails {
     };
 }
 
-function emptyToUndefined(value: string | undefined): string | undefined {
-    return value?.trim() || undefined;
-}
-
-async function validateSpeciesDto(speciesDto: ISpeciesDto): Promise<SpeciesData> {
+async function validateSpeciesDto(
+    speciesDto: ISpeciesDto
+): Promise<SpeciesData> {
     const dto = Object.assign(new ISpeciesDto(), speciesDto);
     dto.name = dto.name?.trim();
     dto.scientificName = emptyToUndefined(dto.scientificName);
     dto.description = emptyToUndefined(dto.description);
     dto.imageURL = emptyToUndefined(dto.imageURL);
 
-    const errors = await validate(dto, { whitelist: true });
-    if (errors.length > 0) {
-        const messages = errors.flatMap((error) => Object.values(error.constraints ?? {}));
-        throw new Error([...new Set(messages)].join(' ') || EERROR_MESSAGE.SPECIES_VALIDATION);
-    }
+    await assertValidDto(dto, EERROR_MESSAGE.SPECIES_VALIDATION);
 
     for (const [min, max] of RANGES) {
         const minValue = dto[min];
         const maxValue = dto[max];
         if (minValue != null && maxValue != null && minValue > maxValue) {
-            throw new Error(EERROR_MESSAGE.SPECIES_RANGE_INVALID);
+            throw new ActionError(EERROR_MESSAGE.SPECIES_RANGE_INVALID);
         }
     }
 
     const categoryIds = [...new Set(dto.categoryIds)];
-    const found = await prisma.speciesCategory.count({ where: { id: { in: categoryIds } } });
+    const found = await prisma.speciesCategory.count({
+        where: { id: { in: categoryIds } },
+    });
     if (found !== categoryIds.length) {
-        throw new Error(EERROR_MESSAGE.SPECIES_CATEGORY_INVALID);
+        throw new ActionError(EERROR_MESSAGE.SPECIES_CATEGORY_INVALID);
     }
 
     return {
@@ -143,17 +140,6 @@ async function validateSpeciesDto(speciesDto: ISpeciesDto): Promise<SpeciesData>
     };
 }
 
-async function assertNameAvailable(name: string, excludeId?: string): Promise<void> {
-    const existing = await prisma.species.findUnique({
-        where: { name },
-        select: { id: true },
-    });
-
-    if (existing && existing.id !== excludeId) {
-        throw new Error(EERROR_MESSAGE.SPECIES_NAME_TAKEN);
-    }
-}
-
 async function assertSpeciesExists(id: string): Promise<void> {
     const species = await prisma.species.findUnique({
         where: { id },
@@ -161,15 +147,23 @@ async function assertSpeciesExists(id: string): Promise<void> {
     });
 
     if (!species) {
-        throw new Error(EERROR_MESSAGE.SPECIES_NOT_FOUND);
+        throw new ActionError(EERROR_MESSAGE.SPECIES_NOT_FOUND);
     }
 }
+
+/** Le nom est unique : un doublon (même concurrent) est détecté par la contrainte en base. */
+const SPECIES_WRITE_OPTIONS = {
+    uniqueViolation: EERROR_MESSAGE.SPECIES_NAME_TAKEN,
+};
 
 function searchWhere(search?: string) {
     const term = search?.trim();
     if (!term) return {};
     return {
-        OR: [{ name: { contains: term } }, { scientificName: { contains: term } }],
+        OR: [
+            { name: { contains: term } },
+            { scientificName: { contains: term } },
+        ],
     };
 }
 
@@ -179,10 +173,15 @@ function searchWhere(search?: string) {
 export async function getSpecies(query: ISpeciesQuery): Promise<ISpeciesPage> {
     await requireRole(...DATA_ADMIN_ROLES);
 
-    const pageSize = Math.min(Math.max(Math.trunc(query.pageSize) || 10, 1), MAX_PAGE_SIZE);
+    const pageSize = Math.min(
+        Math.max(Math.trunc(query.pageSize) || 10, 1),
+        MAX_PAGE_SIZE
+    );
     const page = Math.max(Math.trunc(query.page) || 0, 0);
     const sortField =
-        query.sortField && SPECIES_SORT_FIELDS.includes(query.sortField) ? query.sortField : 'name';
+        query.sortField && SPECIES_SORT_FIELDS.includes(query.sortField)
+            ? query.sortField
+            : 'name';
     const sortOrder = query.sortOrder === 'desc' ? 'desc' : 'asc';
     const where = searchWhere(query.search);
 
@@ -191,7 +190,10 @@ export async function getSpecies(query: ISpeciesQuery): Promise<ISpeciesPage> {
             where,
             include: SPECIES_DETAILS_INCLUDE,
             // Tri secondaire par nom pour un ordre stable entre les pages.
-            orderBy: sortField === 'name' ? { name: sortOrder } : [{ [sortField]: sortOrder }, { name: 'asc' }],
+            orderBy:
+                sortField === 'name'
+                    ? { name: sortOrder }
+                    : [{ [sortField]: sortOrder }, { name: 'asc' }],
             skip: page * pageSize,
             take: pageSize,
         }),
@@ -201,7 +203,9 @@ export async function getSpecies(query: ISpeciesQuery): Promise<ISpeciesPage> {
     return { rows: rows.map(toSpeciesDetails), total };
 }
 
-export async function getSpeciesById(id: string): Promise<ISpeciesDetails | null> {
+export async function getSpeciesById(
+    id: string
+): Promise<ISpeciesDetails | null> {
     await requireRole(...DATA_ADMIN_ROLES);
     const species = await prisma.species.findUnique({
         where: { id },
@@ -212,7 +216,9 @@ export async function getSpeciesById(id: string): Promise<ISpeciesDetails | null
 }
 
 /** Recherche d'espèces pour les sélecteurs (limitée à quelques résultats). */
-export async function searchSpeciesOptions(search: string): Promise<ISpeciesOption[]> {
+export async function searchSpeciesOptions(
+    search: string
+): Promise<ISpeciesOption[]> {
     await requireRole(...DATA_ADMIN_ROLES);
     return prisma.species.findMany({
         where: searchWhere(search),
@@ -222,50 +228,63 @@ export async function searchSpeciesOptions(search: string): Promise<ISpeciesOpti
     });
 }
 
-export async function createSpecies(speciesDto: ISpeciesDto): Promise<void> {
+export async function createSpecies(
+    speciesDto: ISpeciesDto
+): Promise<ActionResult> {
     await requireRole(...DATA_ADMIN_ROLES);
-    const { categoryIds, ...data } = await validateSpeciesDto(speciesDto);
-    await assertNameAvailable(data.name);
+    return runAction(async () => {
+        const { categoryIds, ...data } = await validateSpeciesDto(speciesDto);
 
-    await prisma.species.create({
-        data: {
-            ...data,
-            categories: { connect: categoryIds.map((id) => ({ id })) },
-        },
-    });
+        await prisma.species.create({
+            data: {
+                ...data,
+                categories: { connect: categoryIds.map((id) => ({ id })) },
+            },
+        });
 
-    revalidateSpeciesPages();
+        revalidateSpeciesPages();
+    }, SPECIES_WRITE_OPTIONS);
 }
 
-export async function updateSpecies(id: string, speciesDto: ISpeciesDto): Promise<void> {
+export async function updateSpecies(
+    id: string,
+    speciesDto: ISpeciesDto
+): Promise<ActionResult> {
     await requireRole(...DATA_ADMIN_ROLES);
-    await assertSpeciesExists(id);
-    const { categoryIds, ...data } = await validateSpeciesDto(speciesDto);
-    await assertNameAvailable(data.name, id);
+    return runAction(async () => {
+        await assertSpeciesExists(id);
+        const { categoryIds, ...data } = await validateSpeciesDto(speciesDto);
 
-    await prisma.species.update({
-        where: { id },
-        data: {
-            ...data,
-            categories: { set: categoryIds.map((categoryId) => ({ id: categoryId })) },
-        },
-    });
+        await prisma.species.update({
+            where: { id },
+            data: {
+                ...data,
+                categories: {
+                    set: categoryIds.map((categoryId) => ({ id: categoryId })),
+                },
+            },
+        });
 
-    revalidateSpeciesPages();
+        revalidateSpeciesPages();
+    }, SPECIES_WRITE_OPTIONS);
 }
 
 /** Refusé si l'espèce vit encore dans un aquarium (relation `onDelete: Restrict`). */
-export async function deleteSpecies(id: string): Promise<void> {
+export async function deleteSpecies(id: string): Promise<ActionResult> {
     await requireRole(...DATA_ADMIN_ROLES);
-    await assertSpeciesExists(id);
+    return runAction(async () => {
+        await assertSpeciesExists(id);
 
-    const populations = await prisma.aquariumPopulation.count({ where: { speciesId: id } });
-    if (populations > 0) {
-        throw new Error(EERROR_MESSAGE.SPECIES_IN_AQUARIUM);
-    }
+        const populations = await prisma.aquariumPopulation.count({
+            where: { speciesId: id },
+        });
+        if (populations > 0) {
+            throw new ActionError(EERROR_MESSAGE.SPECIES_IN_AQUARIUM);
+        }
 
-    // Les lignes de la table de jointure espèce ↔ catégorie partent en cascade.
-    await prisma.species.delete({ where: { id } });
+        // Les lignes de la table de jointure espèce ↔ catégorie partent en cascade.
+        await prisma.species.delete({ where: { id } });
 
-    revalidateSpeciesPages();
+        revalidateSpeciesPages();
+    });
 }

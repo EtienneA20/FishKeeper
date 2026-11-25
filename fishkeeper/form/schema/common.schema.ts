@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 
+import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
 import type { NumberLimit } from '@/constants/form-limits';
 
 function hasAtMostDecimals(value: number, decimals: number): boolean {
@@ -28,7 +29,11 @@ export const optionalBoundedNumber = ({ min, max, decimals }: NumberLimit) =>
 
 /** Texte facultatif borné en longueur. */
 export const optionalText = (maxLength: number) =>
-    yup.string().trim().max(maxLength, `${maxLength} caractères maximum.`).optional();
+    yup
+        .string()
+        .trim()
+        .max(maxLength, `${maxLength} caractères maximum.`)
+        .optional();
 
 /** URL facultative (http/https uniquement), bornée en longueur. */
 export const optionalUrl = (maxLength: number) =>
@@ -37,7 +42,7 @@ export const optionalUrl = (maxLength: number) =>
         .trim()
         .transform((value) => (value === '' ? undefined : value))
         .max(maxLength, `${maxLength} caractères maximum.`)
-        .url("L'URL de l'image est invalide.")
+        .url(EERROR_MESSAGE.IMAGE_URL_INVALID)
         .matches(/^https?:\/\//i, {
             message: "L'URL doit commencer par http:// ou https://.",
             excludeEmptyString: true,

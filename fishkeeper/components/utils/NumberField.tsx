@@ -4,9 +4,16 @@ import { TextField, type TextFieldProps } from '@mui/material';
 import { useState } from 'react';
 
 import type { NumberLimit } from '@/constants/form-limits';
-import { formatDecimalInput, parseDecimalInput, sanitizeDecimalInput } from '@/lib/decimal-input';
+import {
+    formatDecimalInput,
+    parseDecimalInput,
+    sanitizeDecimalInput,
+} from '@/lib/decimal-input';
 
-type NumberFieldProps = Omit<TextFieldProps, 'value' | 'onChange' | 'type' | 'defaultValue'> & {
+type NumberFieldProps = Omit<
+    TextFieldProps,
+    'value' | 'onChange' | 'type' | 'defaultValue'
+> & {
     value: number | null | undefined;
     onChange: (value: number | undefined) => void;
     limit: NumberLimit;
@@ -26,6 +33,21 @@ export default function NumberField({
 }: NumberFieldProps): React.JSX.Element {
     // Le texte saisi est conservé tel quel (ex. « 7, » en cours de frappe).
     const [text, setText] = useState(() => formatDecimalInput(value));
+    const [syncedValue, setSyncedValue] = useState(value);
+
+    // Valeur modifiée de l'extérieur (reset, setValue) : on réaligne le texte affiché,
+    // sauf s'il représente déjà cette valeur (saisie en cours comme « 7, »).
+    if (value !== syncedValue) {
+        setSyncedValue(value);
+        if (parseDecimalInput(text) !== (value ?? undefined)) {
+            setText(formatDecimalInput(value));
+        }
+    }
+
+    const htmlInput =
+        typeof slotProps?.htmlInput === 'object' ? slotProps.htmlInput : {};
+    const inputLabel =
+        typeof slotProps?.inputLabel === 'object' ? slotProps.inputLabel : {};
 
     return (
         <TextField
@@ -33,19 +55,26 @@ export default function NumberField({
             type="text"
             value={text}
             onChange={(event) => {
-                const next = sanitizeDecimalInput(event.target.value, limit.decimals);
+                const next = sanitizeDecimalInput(
+                    event.target.value,
+                    limit.decimals
+                );
                 setText(next);
                 onChange(parseDecimalInput(next));
             }}
-            helperText={helperText ?? `De ${limit.min} à ${limit.max.toLocaleString('fr-FR')}`}
+            helperText={
+                helperText ??
+                `De ${limit.min} à ${limit.max.toLocaleString('fr-FR')}`
+            }
             slotProps={{
                 ...slotProps,
                 htmlInput: {
+                    ...htmlInput,
                     inputMode: limit.decimals > 0 ? 'decimal' : 'numeric',
                     maxLength: String(limit.max).length + limit.decimals + 1,
                     autoComplete: 'off',
                 },
-                inputLabel: { shrink: true },
+                inputLabel: { shrink: true, ...inputLabel },
             }}
         />
     );

@@ -1,13 +1,25 @@
 'use client';
 
-import { Autocomplete, Box, Button, CircularProgress, Grid, Stack, TextField } from '@mui/material';
+import {
+    Autocomplete,
+    Box,
+    Button,
+    CircularProgress,
+    Grid,
+    Stack,
+    TextField,
+} from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { searchSpeciesOptions } from '@/actions/species.controller';
 import NumberField from '@/components/utils/NumberField';
-import { POPULATION_LIMITS, POPULATION_MIN_DATE, TEXT_LIMITS } from '@/constants/form-limits';
+import {
+    POPULATION_LIMITS,
+    POPULATION_MIN_DATE,
+    TEXT_LIMITS,
+} from '@/constants/form-limits';
 import type { IPopulationAquariumOption } from '@/interface/entity/aquarium-population.entity';
 import type { ISpeciesOption } from '@/interface/entity/species.entity';
 import {
@@ -29,12 +41,16 @@ interface PopulationFormProps {
     submitLabel?: string;
 }
 
-export function formatAquariumOption(option: IPopulationAquariumOption): string {
+export function formatAquariumOption(
+    option: IPopulationAquariumOption
+): string {
     return `${option.name} — ${option.ownerName}`;
 }
 
 function formatSpeciesOption(option: ISpeciesOption): string {
-    return option.scientificName ? `${option.name} (${option.scientificName})` : option.name;
+    return option.scientificName
+        ? `${option.name} (${option.scientificName})`
+        : option.name;
 }
 
 export default function PopulationForm({
@@ -70,7 +86,8 @@ export default function PopulationForm({
     );
 
     // Recherche des espèces côté serveur : la base en contient trop pour tout charger.
-    const [selectedSpecies, setSelectedSpecies] = useState<ISpeciesOption | null>(initialSpecies);
+    const [selectedSpecies, setSelectedSpecies] =
+        useState<ISpeciesOption | null>(initialSpecies);
     const [speciesSearch, setSpeciesSearch] = useState('');
     const [speciesOptions, setSpeciesOptions] = useState<ISpeciesOption[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -98,7 +115,8 @@ export default function PopulationForm({
     // L'option sélectionnée doit rester dans la liste pour qu'Autocomplete l'affiche.
     const displayedSpeciesOptions = useMemo(
         () =>
-            selectedSpecies && !speciesOptions.some((option) => option.id === selectedSpecies.id)
+            selectedSpecies &&
+            !speciesOptions.some((option) => option.id === selectedSpecies.id)
                 ? [selectedSpecies, ...speciesOptions]
                 : speciesOptions,
         [selectedSpecies, speciesOptions]
@@ -114,9 +132,13 @@ export default function PopulationForm({
                         <Autocomplete
                             options={aquariumOptions}
                             value={aquariumsById.get(field.value) ?? null}
-                            onChange={(_event, selected) => field.onChange(selected?.id ?? '')}
+                            onChange={(_event, selected) =>
+                                field.onChange(selected?.id ?? '')
+                            }
                             getOptionLabel={formatAquariumOption}
-                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            isOptionEqualToValue={(option, value) =>
+                                option.id === value.id
+                            }
                             disabled={isLoading}
                             noOptionsText="Aucun aquarium"
                             renderInput={(params) => (
@@ -142,12 +164,15 @@ export default function PopulationForm({
                                 field.onChange(selected?.id ?? '');
                             }}
                             onInputChange={(_event, value, reason) => {
-                                if (reason === 'input' || reason === 'clear') setSpeciesSearch(value);
+                                if (reason === 'input' || reason === 'clear')
+                                    setSpeciesSearch(value);
                             }}
                             // Le filtrage est fait par le serveur.
                             filterOptions={(options) => options}
                             getOptionLabel={formatSpeciesOption}
-                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            isOptionEqualToValue={(option, value) =>
+                                option.id === value.id
+                            }
                             loading={isSearching}
                             loadingText="Recherche..."
                             disabled={isLoading}
@@ -185,7 +210,10 @@ export default function PopulationForm({
                     disabled={isLoading}
                     slotProps={{
                         inputLabel: { shrink: true },
-                        htmlInput: { min: POPULATION_MIN_DATE, max: todayAsInputValue() },
+                        htmlInput: {
+                            min: POPULATION_MIN_DATE,
+                            max: todayAsInputValue(),
+                        },
                     }}
                 />
                 <Grid container spacing={2}>
@@ -241,11 +269,23 @@ export default function PopulationForm({
                 />
 
                 <Stack direction="row" spacing={1}>
-                    <Button type="button" onClick={onCancel} disabled={isLoading}>
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={isLoading}
+                    >
                         Annuler
                     </Button>
-                    <Button type="submit" variant="contained" disabled={isLoading}>
-                        {isLoading ? <CircularProgress size={20} /> : submitLabel}
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <CircularProgress size={20} />
+                        ) : (
+                            submitLabel
+                        )}
                     </Button>
                 </Stack>
             </Stack>

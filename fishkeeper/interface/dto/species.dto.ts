@@ -16,7 +16,11 @@ import {
 import { EAggressiveness } from '@/constants/enum/aggressiveness.enum';
 import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
 import { EWaterType } from '@/constants/enum/water-type.enum';
-import { SPECIES_LIMITS, TEXT_LIMITS, type NumberLimit } from '@/constants/form-limits';
+import {
+    SPECIES_LIMITS,
+    TEXT_LIMITS,
+    type NumberLimit,
+} from '@/constants/form-limits';
 
 const NUMBER = { message: EERROR_MESSAGE.SPECIES_NUMBER_INVALID };
 const TOO_LONG = { message: EERROR_MESSAGE.TEXT_TOO_LONG };
@@ -39,14 +43,23 @@ export class ISpeciesDto {
     @MaxLength(TEXT_LIMITS.name, TOO_LONG)
     name!: string;
 
-    @IsString() @IsOptional() @MaxLength(TEXT_LIMITS.scientificName, TOO_LONG) scientificName?: string;
+    @IsString()
+    @IsOptional()
+    @MaxLength(TEXT_LIMITS.scientificName, TOO_LONG)
+    scientificName?: string;
 
     @IsArray({ message: EERROR_MESSAGE.SPECIES_CATEGORY_REQUIRED })
     @ArrayNotEmpty({ message: EERROR_MESSAGE.SPECIES_CATEGORY_REQUIRED })
-    @IsUUID('all', { each: true, message: EERROR_MESSAGE.SPECIES_CATEGORY_INVALID })
+    @IsUUID('all', {
+        each: true,
+        message: EERROR_MESSAGE.SPECIES_CATEGORY_INVALID,
+    })
     categoryIds!: string[];
 
-    @IsString() @IsOptional() @MaxLength(TEXT_LIMITS.description, TOO_LONG) description?: string;
+    @IsString()
+    @IsOptional()
+    @MaxLength(TEXT_LIMITS.description, TOO_LONG)
+    description?: string;
 
     @IsOptional()
     @MaxLength(TEXT_LIMITS.url, TOO_LONG)
@@ -67,7 +80,9 @@ export class ISpeciesDto {
     @BoundedNumber(SPECIES_LIMITS.kh) maxKh?: number;
     @BoundedNumber(SPECIES_LIMITS.volume) minVolume?: number;
 
-    @IsEnum(EAggressiveness, { message: EERROR_MESSAGE.SPECIES_AGGRESSIVENESS_INVALID })
+    @IsEnum(EAggressiveness, {
+        message: EERROR_MESSAGE.SPECIES_AGGRESSIVENESS_INVALID,
+    })
     @IsOptional()
     aggressiveness?: EAggressiveness;
 }
