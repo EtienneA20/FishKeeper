@@ -5,7 +5,9 @@ import ControlPointTwoToneIcon from '@mui/icons-material/ControlPointTwoTone';
 import PageHeaderCard from '../../components/PageHeaderCard';
 import DialogButton from '../../components/DialogButton';
 import StatusChip from '../../components/StatusChip';
-import AddEquipmentForm from './AddEquipmentForm';
+import EquipmentFormDialog from '@/form/dialog/EquipmentFormDialog';
+import type { EquipmentFormValues } from '@/form/schema/equipment.schema';
+import { createEquipment } from '@/actions/equipment.controller';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { IAquarium } from '@/interface/entity/aquarium.entity';
 import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
@@ -20,7 +22,17 @@ export default function MaterialHeaderCard({
     aquariums,
 }: MaterialHeaderCardProps): React.JSX.Element {
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     let nbOperationalEquipment = 0;
+
+    const handleSave = async (values: EquipmentFormValues): Promise<void> => {
+        setIsSaving(true);
+        try {
+            await createEquipment(values);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     
     for (const equipment of equipments) {
         if (equipment.status === EEquipmentStatus.WORKING) {
@@ -50,7 +62,13 @@ export default function MaterialHeaderCard({
             />
         }
     />
-        <AddEquipmentForm open={isAddOpen} onClose={() => setIsAddOpen(false)} aquariums={aquariums} />
+        <EquipmentFormDialog
+            open={isAddOpen}
+            aquariums={aquariums}
+            isLoading={isSaving}
+            onClose={() => setIsAddOpen(false)}
+            onSave={handleSave}
+        />
     </>
     );
 }

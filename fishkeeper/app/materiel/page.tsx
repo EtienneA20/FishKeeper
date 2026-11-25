@@ -40,7 +40,7 @@ export default async function MaterialPage(): Promise<React.JSX.Element> {
             {"Vous ne possédez aucun matériel / équipement"}
           </Typography>
         ) : (
-          <MaterialGrid equipments={equipments}/>
+          <MaterialGrid equipments={equipments} aquariums={aquariums}/>
         )}
     </Box>
   );

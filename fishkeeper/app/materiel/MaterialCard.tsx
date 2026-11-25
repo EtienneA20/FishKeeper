@@ -100,12 +100,10 @@ export default function MaterialCard({
                 </IconButton>
             </Box>
 
-            {daysRemaining !== null && (
-                <MaterialStatusBar
-                    daysRemaining={daysRemaining}
-                    totalDays={totalDays ?? undefined}
-                />
-            )}
+            <MaterialStatusBar
+                daysRemaining={daysRemaining}
+                totalDays={totalDays ?? undefined}
+            />
 
             {details.length > 0 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', px: 1 }}>

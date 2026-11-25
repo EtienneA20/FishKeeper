@@ -1,8 +1,11 @@
 'use server';
 
+import { validate } from 'class-validator';
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db';
 import { requireRole } from '@/lib/auth-guard';
+import { EERROR_MESSAGE } from '@/constants/enum/error-message.enum';
+import { IEquipmentDto } from '@/interface/dto/equipment.dto';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { EEquipmentType } from '@/constants/enum/equipment-type.enum';
 import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
@@ -23,43 +26,50 @@ export async function getMyEquipments(): Promise<IEquipment[]> {
     }));
 }
 
-function textOrNull(value: string | undefined): string | null {
-    const trimmed = value?.trim() ?? '';
-    return trimmed === '' ? null : trimmed;
+function emptyToUndefined(value: string | undefined): string | undefined {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : undefined;
 }
 
-export async function createEquipment(values: Record<string, string>): Promise<void> {
-    const session = await requireRole();
+async function validateEquipmentDto(equipmentDto: IEquipmentDto): Promise<IEquipmentDto> {
+    const dto = Object.assign(new IEquipmentDto(), equipmentDto);
+    dto.name = dto.name?.trim();
+    dto.brand = emptyToUndefined(dto.brand);
+    dto.model = emptyToUndefined(dto.model);
+    dto.purchasedAt = emptyToUndefined(dto.purchasedAt);
+    dto.notes = emptyToUndefined(dto.notes);
+    dto.imageURL = emptyToUndefined(dto.imageURL);
 
-    const name = textOrNull(values.name);
-    if (!name) {
-        throw new Error('Le nom est obligatoire.');
+    const errors = await validate(dto, { whitelist: true });
+    if (errors.length > 0) {
+        const messages = errors.flatMap((error) => Object.values(error.constraints ?? {}));
+        throw new Error(messages.join(' ') || EERROR_MESSAGE.EQUIPMENT_VALIDATION);
     }
+    return dto;
+}
+
+export async function createEquipment(equipmentDto: IEquipmentDto): Promise<void> {
+    const session = await requireRole();
+    const dto = await validateEquipmentDto(equipmentDto);
 
     const aquarium = await prisma.aquarium.findFirst({
-        where: { id: values.aquariumId, ownerId: session.user.id },
+        where: { id: dto.aquariumId, ownerId: session.user.id },
     });
     if (!aquarium) {
-        throw new Error('Aquarium invalide.');
+        throw new Error(EERROR_MESSAGE.EQUIPMENT_AQUARIUM_INVALID);
     }
-
-    const type = values.type as EEquipmentType;
-    const status = values.status as EEquipmentStatus;
-
-    const maintenanceInterval = textOrNull(values.maintenanceInterval);
-    const purchasedAt = textOrNull(values.purchasedAt);
 
     await prisma.equipment.create({
         data: {
-            name,
-            type,
-            status,
-            brand: textOrNull(values.brand),
-            model: textOrNull(values.model),
-            maintenanceInterval: maintenanceInterval ? Number(maintenanceInterval) : null,
-            purchasedAt: purchasedAt ? new Date(purchasedAt) : null,
-            imageURL: textOrNull(values.imageURL),
-            notes: textOrNull(values.notes),
+            name: dto.name,
+            type: dto.type,
+            status: dto.status,
+            brand: dto.brand ?? null,
+            model: dto.model ?? null,
+            maintenanceInterval: dto.maintenanceInterval ?? null,
+            purchasedAt: dto.purchasedAt ? new Date(dto.purchasedAt) : null,
+            imageURL: dto.imageURL ?? null,
+            notes: dto.notes ?? null,
             aquariumId: aquarium.id,
         },
     });
