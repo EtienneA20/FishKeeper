@@ -3,10 +3,10 @@
 import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import MaterialStatusBar from './MaterialStatusBar';
+import EquipmentStatusBar from './EquipmentStatusBar';
 import { DEFAULT_EQUIPMENT_IMAGE_URL } from '@/constants/equipment.constant';
 
-interface MaterialCardProps {
+interface EquipmentCardProps {
     title: string;
     statusSlotCat?: React.ReactNode;
     statusSlotTyp?: React.ReactNode;
@@ -14,16 +14,16 @@ interface MaterialCardProps {
     daysRemaining: number | null;
     totalDays?: number | null;
     imageURL?: string | null;
-    details?: MaterialCardDetail[];
+    details?: EquipmentCardDetail[];
     notes?: string | null;
 }
 
-export interface MaterialCardDetail {
+export interface EquipmentCardDetail {
     label: string;
     value: string;
 }
 
-export default function MaterialCard({
+export default function EquipmentCard({
     title,
     statusSlotCat,
     statusSlotStatus,
@@ -32,7 +32,7 @@ export default function MaterialCard({
     imageURL,
     details = [],
     notes,
-}: MaterialCardProps): React.JSX.Element {
+}: EquipmentCardProps): React.JSX.Element {
     return (
         <Box
             sx={{
@@ -100,7 +100,7 @@ export default function MaterialCard({
                 </IconButton>
             </Box>
 
-            <MaterialStatusBar
+            <EquipmentStatusBar
                 daysRemaining={daysRemaining}
                 totalDays={totalDays ?? undefined}
             />

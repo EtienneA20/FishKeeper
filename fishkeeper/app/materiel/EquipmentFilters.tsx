@@ -5,13 +5,13 @@ import CategoryFilterBar from '../../components/CategoryFilterBar';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { EQUIPMENT_TYPES } from '@/constants/equipment.constant';
 
-interface MaterialFiltersProps {
+interface EquipmentFiltersProps {
     equipments: IEquipment[];
 }
 
-export default function MaterialFilters({
+export default function EquipmentFilters({
     equipments,
-}: MaterialFiltersProps): React.JSX.Element {
+}: EquipmentFiltersProps): React.JSX.Element {
     const categories: Record<string, number> = {};
 
     for (const equipment of equipments) {

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Chip, Grid } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
-import MaterialCard from './MaterialCard';
+import EquipmentCard from './EquipmentCard';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { IAquarium } from '@/interface/entity/aquarium.entity';
 import {
@@ -29,16 +29,16 @@ function getDaysRemaining(equipment: IEquipment): number | null {
 }
 
 
-interface MaterialGridProps {
+interface EquipmentGridProps {
     equipments: IEquipment[];
     aquariums: Pick<IAquarium, 'id' | 'name'>[];
 }
 
 
-export default function MaterialGrid({
+export default function EquipmentGrid({
     equipments,
     aquariums,
-}: MaterialGridProps): React.JSX.Element {
+}: EquipmentGridProps): React.JSX.Element {
     const searchParams = useSearchParams();
     // id → nom, pour afficher le nom de l'aquarium de chaque équipement.
     const aquariumNames = useMemo(
@@ -58,7 +58,7 @@ export default function MaterialGrid({
         <Grid container spacing={6} sx={{ mt: 6 }}>
             {filteredEquipments.map((equipment) => (
                 <Grid key={equipment.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                    <MaterialCard
+                    <EquipmentCard
                         title={equipment.name}
                         statusSlotStatus={
                             <Chip

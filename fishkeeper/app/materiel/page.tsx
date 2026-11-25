@@ -5,13 +5,13 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/auth';
 import { getMyEquipments } from '@/actions/equipment.controller';
 import { getMyAquariums } from '@/actions/aquarium.controller';
-import MaterialHeaderCard from './MaterialHeaderCard';
-import MaterialFilters from './MaterialFilters';
+import EquipmentHeaderCard from './EquipmentHeaderCard';
+import EquipmentFilters from './EquipmentFilters';
 import ViewModeToggle from '../../components/ViewModeToggle';
-import MaterialGrid from './MaterialGrid';
+import EquipmentGrid from './EquipmentGrid';
 
 
-export default async function MaterialPage(): Promise<React.JSX.Element> {
+export default async function EquipmentPage(): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect('/login');
@@ -22,9 +22,9 @@ export default async function MaterialPage(): Promise<React.JSX.Element> {
 
   return (
     <Box sx={{ m: -3, p: 6, boxSizing: 'border-box', height: 'calc(100% + 48px)', overflowY: 'auto', scrollbarGutter: 'stable', backgroundColor: 'page.background' }}>
-        <MaterialHeaderCard equipments={equipments} aquariums={aquariums}/>
+        <EquipmentHeaderCard equipments={equipments} aquariums={aquariums}/>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-          <MaterialFilters equipments={equipments}/>
+          <EquipmentFilters equipments={equipments}/>
           <ViewModeToggle/>
         </Box>
         {equipments.length === 0 ? (
@@ -40,7 +40,7 @@ export default async function MaterialPage(): Promise<React.JSX.Element> {
             {"Vous ne possédez aucun matériel / équipement"}
           </Typography>
         ) : (
-          <MaterialGrid equipments={equipments} aquariums={aquariums}/>
+          <EquipmentGrid equipments={equipments} aquariums={aquariums}/>
         )}
     </Box>
   );

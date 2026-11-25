@@ -12,15 +12,15 @@ import { IEquipment } from '@/interface/entity/equipment.entity';
 import { IAquarium } from '@/interface/entity/aquarium.entity';
 import { EEquipmentStatus } from '@/constants/enum/equipment-status.enum';
 
-interface MaterialHeaderCardProps {
+interface EquipmentHeaderCardProps {
     equipments: IEquipment[];
     aquariums: Pick<IAquarium, 'id' | 'name'>[];
 }
 
-export default function MaterialHeaderCard({
+export default function EquipmentHeaderCard({
     equipments,
     aquariums,
-}: MaterialHeaderCardProps): React.JSX.Element {
+}: EquipmentHeaderCardProps): React.JSX.Element {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     let nbOperationalEquipment = 0;

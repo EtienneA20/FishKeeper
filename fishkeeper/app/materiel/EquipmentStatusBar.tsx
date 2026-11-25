@@ -4,16 +4,16 @@ import React from 'react';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import { ALERT_THRESHOLD_DAYS } from '@/constants/equipment.constant';
 
-interface MaterialStatusBarProps {
+interface EquipmentStatusBarProps {
     /** null : aucun cycle d'entretien défini pour cet équipement. */
     daysRemaining: number | null;
     totalDays?: number;
 }
 
-export default function MaterialStatusBar({
+export default function EquipmentStatusBar({
     daysRemaining,
     totalDays = 100,
-}: MaterialStatusBarProps): React.JSX.Element {
+}: EquipmentStatusBarProps): React.JSX.Element {
     const hasCycle = daysRemaining !== null;
     const isAlert = hasCycle && daysRemaining < ALERT_THRESHOLD_DAYS;
     const isOverdue = hasCycle && daysRemaining < 0;
