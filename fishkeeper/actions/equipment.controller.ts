@@ -76,3 +76,16 @@ export async function createEquipment(equipmentDto: IEquipmentDto): Promise<void
 
     revalidatePath('/materiel');
 }
+
+export async function deleteEquipment(id: string): Promise<void> {
+    const session = await requireRole();
+
+    const { count } = await prisma.equipment.deleteMany({
+        where: { id, aquarium: { ownerId: session.user.id } },
+    });
+    if (count === 0) {
+        throw new Error(EERROR_MESSAGE.EQUIPMENT_NOT_FOUND);
+    }
+
+    revalidatePath('/materiel');
+}

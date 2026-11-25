@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { Chip, Grid } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import EquipmentCard from './EquipmentCard';
+import { deleteEquipment } from '@/actions/equipment.controller';
 import { IEquipment } from '@/interface/entity/equipment.entity';
 import { IAquarium } from '@/interface/entity/aquarium.entity';
 import {
@@ -114,6 +115,7 @@ export default function EquipmentGrid({
                             />
                         }
                         notes={equipment.notes}
+                        onDelete={() => deleteEquipment(equipment.id)}
                     />
                 </Grid>
             ))}

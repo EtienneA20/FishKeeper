@@ -1,8 +1,18 @@
 'use client';
 
-import React from 'react';
-import { Box, IconButton, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import {
+    Box,
+    IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    Typography,
+} from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Pencil, Trash2 } from 'lucide-react';
+import ConfirmDialog from '@/components/utils/ConfirmDialog';
 import EquipmentStatusBar from './EquipmentStatusBar';
 import { DEFAULT_EQUIPMENT_IMAGE_URL } from '@/constants/equipment.constant';
 
@@ -16,6 +26,7 @@ interface EquipmentCardProps {
     imageURL?: string | null;
     details?: EquipmentCardDetail[];
     notes?: string | null;
+    onDelete?: () => Promise<void>;
 }
 
 export interface EquipmentCardDetail {
@@ -32,7 +43,43 @@ export default function EquipmentCard({
     imageURL,
     details = [],
     notes,
+    onDelete,
 }: EquipmentCardProps): React.JSX.Element {
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+    const isMenuOpen = Boolean(menuAnchor);
+
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>): void => {
+        setMenuAnchor(event.currentTarget);
+    };
+
+    const handleCloseMenu = (): void => {
+        setMenuAnchor(null);
+    };
+
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const handleAskDelete = (): void => {
+        handleCloseMenu();
+        setDeleteError(null);
+        setIsConfirmOpen(true);
+    };
+
+    const handleConfirmDelete = async (): Promise<void> => {
+        if (!onDelete) return;
+        setIsDeleting(true);
+        setDeleteError(null);
+        try {
+            await onDelete();
+            setIsConfirmOpen(false);
+        } catch (error) {
+            setDeleteError(error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <Box
             sx={{
@@ -94,10 +141,62 @@ export default function EquipmentCard({
                 <IconButton
                     size="small"
                     aria-label="Plus d'actions"
+                    aria-controls={isMenuOpen ? 'equipment-actions-menu' : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={isMenuOpen ? 'true' : undefined}
+                    onClick={handleOpenMenu}
                     sx={{ color: 'card.colorText', mt: -0.5, mr: -0.5 }}
                 >
                     <MoreVertIcon fontSize="small" />
                 </IconButton>
+
+                <Menu
+                    id="equipment-actions-menu"
+                    anchorEl={menuAnchor}
+                    open={isMenuOpen}
+                    onClose={handleCloseMenu}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                minWidth: 160,
+                                borderRadius: 3,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.08)',
+                            },
+                        },
+                    }}
+                >
+                    <MenuItem onClick={handleCloseMenu}>
+                        <ListItemIcon>
+                            <Pencil size={16} />
+                        </ListItemIcon>
+                        <ListItemText>Modifier</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={handleAskDelete} sx={{ color: '#DC2626' }}>
+                        <ListItemIcon sx={{ color: 'inherit' }}>
+                            <Trash2 size={16} />
+                        </ListItemIcon>
+                        <ListItemText>Supprimer</ListItemText>
+                    </MenuItem>
+                </Menu>
+
+                <ConfirmDialog
+                    open={isConfirmOpen}
+                    title="Supprimer l'équipement ?"
+                    isLoading={isDeleting}
+                    error={deleteError}
+                    onClose={() => setIsConfirmOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    message={
+                        <>
+                            Êtes-vous sûr de vouloir supprimer <strong>{title}</strong> ?
+                            Cette action est irréversible.
+                        </>
+                    }
+                />
             </Box>
 
             <EquipmentStatusBar

@@ -25,4 +25,5 @@ export enum EERROR_MESSAGE {
     CATEGORY_SPECIES_IN_AQUARIUM = 'Impossible de supprimer cette catégorie : certaines de ses espèces sont présentes dans un aquarium.',
     EQUIPMENT_VALIDATION = "Les données de l'équipement sont invalides.",
     EQUIPMENT_AQUARIUM_INVALID = 'Aquarium invalide.',
+    EQUIPMENT_NOT_FOUND = 'Équipement introuvable.',
 }
